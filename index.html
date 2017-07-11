@@ -1,0 +1,63 @@
+<html>
+   <head>
+      <!-- Latest compiled and minified CSS -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+      <!-- jQuery library -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+      <!-- Latest compiled JavaScript -->
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+      <!-- Begin Jumbotron Of Page-->
+      <div style="background:#165483 !important" class="jumbotron">
+         <!-- Page Header -->
+         <center>
+            <b>
+               <font color="white">
+                  <h2>HL7-PROCESSOR</h2>
+               </font>
+            </b>
+         </center>
+         <p>
+         <center><font color="white"> IMPORT - VALIDATE - TRANSFORM</font></center>
+         </p>
+      </div>
+      <!-- Begin Div Class Container -->
+      <nav class ="navbar navbar-light" style="background-color: #6dadec;">
+         <div class="Container-fluid">
+            <div class="navbar-header">
+               <a class="navbar-brand" href="#">HL7 Menu</a>
+            </div>
+            <ul class="nav navbar-nav">
+               <li class="active"><a href="#">Main</a></li>
+               <li><a href="#">Parser</a></li>
+               <li><a href="#">Transformer</a></li>
+               <li><a href="#">Validator</a></li>
+            </ul>
+         </div>
+      </nav>
+      <!-- Begin Inner Container -->
+      <div class="Container">
+         <form>
+            <div class="form-group">
+               <label for="comment">DROP THE HL7-MESSAGE:</label>
+               <textarea class="form-control" rows="10" id="comment"></textarea>
+            </div>
+            <!-- Create File Upload Button-->
+            <div class="row">
+               <div class="col-6 col-md-2"></div>
+               <div class="col-6 col-md-3"><button type="button" class="btn btn-sm btn-primary">IMPORT <span class="glyphicon glyphicon-folder-open"></span></button></div>
+               <div class="col-6 col-md-3"><button type="button" class="btn btn-sm btn-primary">VALIDATE <span class="glyphicon glyphicon-paperclip"></span></button></div>
+               <div class="col-6 col-md-3"><button type="button" class="btn btn-sm btn-primary">TRANSFORM <span class="glyphicon glyphicon-paperclip"></span></button></div>
+            </div>
+            <!-- End File Upload Button-->
+         </form>
+         <!-- End Container -->
+         <form>
+            <div class="form-group">
+               <label for="comment">HL7-MESSAGE RESPONSE:</label>
+               <textarea class="form-control" rows="10" id="comment"></textarea>
+            </div>
+         </form>
+      </div>
+      <!-- End Container-fluid-->      
+   </head>
+</html>
