@@ -1,0 +1,1534 @@
+<channel version="3.4.1">
+  <id>9822682e-f058-40b3-b383-33d00401f428</id>
+  <nextMetaDataId>5</nextMetaDataId>
+  <name>270 - JSON to EDIx12</name>
+  <description></description>
+  <enabled>true</enabled>
+  <lastModified>
+    <time>1471615385382</time>
+    <timezone>Asia/Calcutta</timezone>
+  </lastModified>
+  <revision>34</revision>
+  <sourceConnector version="3.4.1">
+    <metaDataId>0</metaDataId>
+    <name>sourceConnector</name>
+    <properties class="com.mirth.connect.connectors.http.HttpReceiverProperties" version="3.4.1">
+      <pluginProperties>
+        <com.mirth.connect.plugins.httpauth.NoneHttpAuthProperties version="3.4.1">
+  <authType>NONE</authType>
+        </com.mirth.connect.plugins.httpauth.NoneHttpAuthProperties>
+      </pluginProperties>
+      <listenerConnectorProperties version="3.4.1">
+        <host>0.0.0.0</host>
+        <port>666</port>
+      </listenerConnectorProperties>
+      <sourceConnectorProperties version="3.4.1">
+        <responseVariable>d1</responseVariable>
+        <respondAfterProcessing>true</respondAfterProcessing>
+        <processBatch>false</processBatch>
+        <firstResponse>false</firstResponse>
+        <processingThreads>1</processingThreads>
+        <resourceIds class="linked-hash-map">
+          <entry>
+            <string>Default Resource</string>
+            <string>[Default Resource]</string>
+          </entry>
+        </resourceIds>
+        <queueBufferSize>1000</queueBufferSize>
+      </sourceConnectorProperties>
+      <xmlBody>false</xmlBody>
+      <parseMultipart>true</parseMultipart>
+      <includeMetadata>false</includeMetadata>
+      <binaryMimeTypes>application/.*(?&lt;!json|xml)$|image/.*|video/.*|audio/.*</binaryMimeTypes>
+      <binaryMimeTypesRegex>true</binaryMimeTypesRegex>
+      <responseContentType>text/plain</responseContentType>
+      <responseDataTypeBinary>false</responseDataTypeBinary>
+      <responseStatusCode></responseStatusCode>
+      <responseHeaders class="linked-hash-map"/>
+      <charset>UTF-8</charset>
+      <contextPath></contextPath>
+      <timeout>0</timeout>
+      <staticResources/>
+    </properties>
+    <transformer version="3.4.1">
+      <steps>
+        <step>
+          <sequenceNumber>0</sequenceNumber>
+          <name>Header Modifier</name>
+          <script>/*BEGIN X12 HEADER*/
+var globCount = 0;
+var isaCount = 0;
+var gsCount = 0;
+var stCount = 0;
+var xmlHL_01_count = 1;
+var HL02_parent = 1;
+//var header;
+/*Check If Not Exists*/
+function exist(val) {
+    if (val != undefined) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function EDIreplace(str, base) {
+    //var i = 0;
+    while (str.length &lt; 15) {
+        str += base;
+    }
+ 
+    return str.substring(0, 15);	
+}
+
+/*Check If Not Exists*/
+function isaHeader() {
+    var headerXml = new XML(&quot;&lt;header&gt;&lt;/header&gt;&quot;); //initialize header XML variable
+    headerXml[&apos;ISA&apos;];
+    //authorizationInfo_x12Header
+    var segH = msg[0][&apos;authorizationInfo_x12Header&apos;]
+    headerXml[&apos;ISA&apos;][&apos;ISA.01&apos;] = segH[&apos;authQualifier&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.02&apos;] = segH[&apos;authInfo&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.03&apos;] = segH[&apos;secQualifier&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.04&apos;] = segH[&apos;secInfo&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.05&apos;] = segH[&apos;icQualifier&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.06&apos;] = EDIreplace(segH[&apos;icSenderId&apos;],&apos; &apos;);
+    headerXml[&apos;ISA&apos;][&apos;ISA.07&apos;] = segH[&apos;idQualifier&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.08&apos;] = EDIreplace(segH[&apos;icReceiverId&apos;],&apos; &apos;);
+    headerXml[&apos;ISA&apos;][&apos;ISA.09&apos;] = segH[&apos;icDate&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.10&apos;] = segH[&apos;itTime&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.11&apos;] = segH[&apos;rtSeparator&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.12&apos;] = segH[&apos;versionNumber&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.13&apos;] = segH[&apos;controlNumber&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.14&apos;] = segH[&apos;requestedAck&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.15&apos;] = segH[&apos;usageIndicator&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.16&apos;] = segH[&apos;elementSeparator&apos;];
+    header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(headerXml);
+    return header;
+}
+
+function gsHeader(gs) {
+   // var gsLen = msg[0][&apos;applicationInfo_x12Header&apos;].length;
+    var ediXml = new XML(&quot;&lt;header&gt;&lt;/header&gt;&quot;);
+    ediXml[&apos;GS&apos;];
+    //applicationInfo_x12Header
+    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs];
+    ediXml[&apos;GS&apos;][&apos;GS.01&apos;] = segH[&apos;idCode&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.02&apos;] = segH[&apos;senderCode&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.03&apos;] = segH[&apos;receiverCode&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.04&apos;] = segH[&apos;date&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.05&apos;] = segH[&apos;time&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.06&apos;] = segH[&apos;controlNumber&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.07&apos;] = segH[&apos;agencyCode&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.08&apos;] = &quot;005010X221&quot;;
+    gsCount++;
+    var header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(ediXml);
+    return header;
+
+}
+
+function stHeader(gs, st) {
+    var stXML = new XML(&quot;&lt;stxml&gt;&lt;/stxml&gt;&quot;);
+    var segLen = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;].length;
+    stXML[&apos;ST&apos;];
+    //transactionInfo_messageHeader
+    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st];
+    stXML[&apos;ST&apos;][&apos;ST.01&apos;] = segH[&apos;identifierCode&apos;];
+    stXML[&apos;ST&apos;][&apos;ST.02&apos;] = segH[&apos;controlNumber&apos;];
+    stXML[&apos;ST&apos;][&apos;ST.03&apos;] = segH[&apos;conventionReference&apos;];
+    globCount++;
+    stXML[&apos;BHT&apos;];
+    //messageBeginningInfo_messageHeader
+    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;messageBeginningInfo_messageHeader&apos;];
+    stXML[&apos;BHT&apos;][&apos;BHT.01&apos;] = segH[&apos;structureCode&apos;];
+    stXML[&apos;BHT&apos;][&apos;BHT.02&apos;] = segH[&apos;purposeCode&apos;];
+    stXML[&apos;BHT&apos;][&apos;BHT.03&apos;] = segH[&apos;referenceId&apos;];
+    stXML[&apos;BHT&apos;][&apos;BHT.04&apos;] = segH[&apos;date&apos;];
+    stXML[&apos;BHT&apos;][&apos;BHT.05&apos;] = segH[&apos;time&apos;];
+    stXML[&apos;BHT&apos;][&apos;BHT.06&apos;] = segH[&apos;typeCode&apos;];
+    globCount++;
+    /*END EDI 270 MESSAGE HEADER*/
+    /** serialize XML to EDI message **/
+    var header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(stXML);
+    return header;
+}</script>
+          <type>JavaScript</type>
+          <data>
+            <entry>
+              <string>Script</string>
+              <string>/*BEGIN X12 HEADER*/
+var globCount = 0;
+var isaCount = 0;
+var gsCount = 0;
+var stCount = 0;
+var xmlHL_01_count = 1;
+var HL02_parent = 1;
+//var header;
+/*Check If Not Exists*/
+function exist(val) {
+    if (val != undefined) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function EDIreplace(str, base) {
+    //var i = 0;
+    while (str.length &lt; 15) {
+        str += base;
+    }
+ 
+    return str.substring(0, 15);	
+}
+
+/*Check If Not Exists*/
+function isaHeader() {
+    var headerXml = new XML(&quot;&lt;header&gt;&lt;/header&gt;&quot;); //initialize header XML variable
+    headerXml[&apos;ISA&apos;];
+    //authorizationInfo_x12Header
+    var segH = msg[0][&apos;authorizationInfo_x12Header&apos;]
+    headerXml[&apos;ISA&apos;][&apos;ISA.01&apos;] = segH[&apos;authQualifier&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.02&apos;] = segH[&apos;authInfo&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.03&apos;] = segH[&apos;secQualifier&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.04&apos;] = segH[&apos;secInfo&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.05&apos;] = segH[&apos;icQualifier&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.06&apos;] = EDIreplace(segH[&apos;icSenderId&apos;],&apos; &apos;);
+    headerXml[&apos;ISA&apos;][&apos;ISA.07&apos;] = segH[&apos;idQualifier&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.08&apos;] = EDIreplace(segH[&apos;icReceiverId&apos;],&apos; &apos;);
+    headerXml[&apos;ISA&apos;][&apos;ISA.09&apos;] = segH[&apos;icDate&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.10&apos;] = segH[&apos;itTime&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.11&apos;] = segH[&apos;rtSeparator&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.12&apos;] = segH[&apos;versionNumber&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.13&apos;] = segH[&apos;controlNumber&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.14&apos;] = segH[&apos;requestedAck&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.15&apos;] = segH[&apos;usageIndicator&apos;];
+    headerXml[&apos;ISA&apos;][&apos;ISA.16&apos;] = segH[&apos;elementSeparator&apos;];
+    header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(headerXml);
+    return header;
+}
+
+function gsHeader(gs) {
+   // var gsLen = msg[0][&apos;applicationInfo_x12Header&apos;].length;
+    var ediXml = new XML(&quot;&lt;header&gt;&lt;/header&gt;&quot;);
+    ediXml[&apos;GS&apos;];
+    //applicationInfo_x12Header
+    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs];
+    ediXml[&apos;GS&apos;][&apos;GS.01&apos;] = segH[&apos;idCode&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.02&apos;] = segH[&apos;senderCode&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.03&apos;] = segH[&apos;receiverCode&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.04&apos;] = segH[&apos;date&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.05&apos;] = segH[&apos;time&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.06&apos;] = segH[&apos;controlNumber&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.07&apos;] = segH[&apos;agencyCode&apos;];
+    ediXml[&apos;GS&apos;][&apos;GS.08&apos;] = &quot;005010X221&quot;;
+    gsCount++;
+    var header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(ediXml);
+    return header;
+
+}
+
+function stHeader(gs, st) {
+    var stXML = new XML(&quot;&lt;stxml&gt;&lt;/stxml&gt;&quot;);
+    var segLen = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;].length;
+    stXML[&apos;ST&apos;];
+    //transactionInfo_messageHeader
+    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st];
+    stXML[&apos;ST&apos;][&apos;ST.01&apos;] = segH[&apos;identifierCode&apos;];
+    stXML[&apos;ST&apos;][&apos;ST.02&apos;] = segH[&apos;controlNumber&apos;];
+    stXML[&apos;ST&apos;][&apos;ST.03&apos;] = segH[&apos;conventionReference&apos;];
+    globCount++;
+    stXML[&apos;BHT&apos;];
+    //messageBeginningInfo_messageHeader
+    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;messageBeginningInfo_messageHeader&apos;];
+    stXML[&apos;BHT&apos;][&apos;BHT.01&apos;] = segH[&apos;structureCode&apos;];
+    stXML[&apos;BHT&apos;][&apos;BHT.02&apos;] = segH[&apos;purposeCode&apos;];
+    stXML[&apos;BHT&apos;][&apos;BHT.03&apos;] = segH[&apos;referenceId&apos;];
+    stXML[&apos;BHT&apos;][&apos;BHT.04&apos;] = segH[&apos;date&apos;];
+    stXML[&apos;BHT&apos;][&apos;BHT.05&apos;] = segH[&apos;time&apos;];
+    stXML[&apos;BHT&apos;][&apos;BHT.06&apos;] = segH[&apos;typeCode&apos;];
+    globCount++;
+    /*END EDI 270 MESSAGE HEADER*/
+    /** serialize XML to EDI message **/
+    var header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(stXML);
+    return header;
+}</string>
+            </entry>
+          </data>
+        </step>
+        <step>
+          <sequenceNumber>1</sequenceNumber>
+          <name>Content_2000A_2000B</name>
+          <script>function Content_2000A(gs, st, i) {
+    var header = &apos;&apos;;
+    //Loop ID - 2000A - sourceLevelInfo_2000A
+    var xmlHL_01_count = 1;
+    var HL02_parent = 1;
+    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;sourceLevelInfo_2000A&apos;];
+    if (exist(segH)) {
+        var lengthHL_2000A = segH.length;
+        for (var i = 0; i &lt; lengthHL_2000A; i++) {
+            var xmlHL_2000A = new XML(&quot;&lt;HL2000A&gt;&lt;/HL2000A&gt;&quot;);
+            xmlHL_2000A[&apos;HL&apos;];
+            xmlHL_2000A[&apos;HL&apos;][&apos;HL.01&apos;] = xmlHL_01_count;
+            xmlHL_2000A[&apos;HL&apos;][&apos;HL.03&apos;] = 20;
+            if (msg[0][&apos;receiverLevelInfo_2000B&apos;] != undefined || msg[0][&apos;receiverLevelInfo_2000B&apos;] != null) {
+                xmlHL_2000A[&apos;HL&apos;][&apos;HL.04&apos;] = 1;
+            } else {
+                xmlHL_2000A[&apos;HL&apos;][&apos;HL.04&apos;] = 0;
+            }
+
+            globCount++;
+            //NM1
+            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;sourceLevelInfo_2000A&apos;][i][&apos;sourceName_2100A&apos;]
+            xmlHL_2000A[&apos;NM1&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.01&apos;] = segH[&apos;eIdCode&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.02&apos;] = segH[&apos;eTypeQualifier&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.03&apos;] = segH[&apos;orgName&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.04&apos;] = segH[&apos;name_first&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.05&apos;] = segH[&apos;name_middle&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.07&apos;] = segH[&apos;name_suffix&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.08&apos;] = segH[&apos;idQualifier&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.09&apos;] = segH[&apos;idCode&apos;];
+            globCount++;
+            var header = header + SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(xmlHL_2000A);
+        }
+    }
+    return header;
+}
+
+function Content_2000B(gs, st, i) {
+    var header = &apos;&apos;;
+    //Loop ID - 2000B - receiverLevelInfo_2000B
+    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;receiverLevelInfo_2000B&apos;];
+    if (exist(segH)) {
+        var lengthHL_2000B = segH.length;
+        var refCount = 0;
+        for (var i = 0; i &lt; lengthHL_2000B; i++) {
+            //HL
+            var xmlHL_2000B = new XML(&quot;&lt;HL2000B&gt;&lt;/HL2000B&gt;&quot;);
+            xmlHL_2000B[&apos;HL&apos;];
+            xmlHL_2000B[&apos;HL&apos;][&apos;HL.01&apos;] = xmlHL_01_count;
+            xmlHL_2000B[&apos;HL&apos;][&apos;HL.02&apos;] = HL02_parent;
+            xmlHL_2000B[&apos;HL&apos;][&apos;HL.03&apos;] = 21;
+            if (msg[0][&apos;subscriberInfo_2000C&apos;] != undefined || msg[0][&apos;subscriberInfo_2000C&apos;] != null) {
+                xmlHL_2000B[&apos;HL&apos;][&apos;HL.04&apos;] = 1;
+            } else {
+                xmlHL_2000B[&apos;HL&apos;][&apos;HL.04&apos;] = 0;
+            }
+            globCount++;
+            xmlHL_01_count++;
+            //NM1
+            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;receiverLevelInfo_2000B&apos;][i][&apos;receiverName_2100B&apos;]
+            xmlHL_2000B[&apos;NM1&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.01&apos;] = segH[&apos;eIdCode&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.02&apos;] = segH[&apos;eTypeQualifier&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.03&apos;] = segH[&apos;orgName&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.04&apos;] = segH[&apos;name_first&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.05&apos;] = segH[&apos;name_middle&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.07&apos;] = segH[&apos;name_suffix&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.08&apos;] = segH[&apos;idQualifier&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.09&apos;] = segH[&apos;idCode&apos;];
+            globCount++;
+
+            //REF
+            for (var k = 0; k &lt; 9; k++) {
+                //xmlRef_2000B
+                if (msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;receiverLevelInfo_2000B&apos;][i][&apos;additionalId_2100B&apos;][k] !== undefined) {
+                    var xmlRef_2000B = new XML(&quot;&lt;REF&gt;&lt;/REF&gt;&quot;);
+                    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;receiverLevelInfo_2000B&apos;][i][&apos;additionalId_2100B&apos;][k]
+                    xmlRef_2000B[&apos;REF&apos;];
+                    xmlRef_2000B[&apos;REF.01&apos;] = segH[&apos;idQualifier&apos;];
+                    xmlRef_2000B[&apos;REF.02&apos;] = segH[&apos;idCode&apos;];
+                    xmlRef_2000B[&apos;REF.03&apos;] = segH[&apos;description&apos;];
+                    xmlHL_2000B.appendChild(xmlRef_2000B);
+                    globCount++;
+                }
+
+            }
+            //N3
+            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;receiverLevelInfo_2000B&apos;][i][&apos;receiverAddress_2100B&apos;]
+            xmlHL_2000B[&apos;N3&apos;];
+            xmlHL_2000B[&apos;N3&apos;][&apos;N3.01&apos;] = segH[&apos;addressLine_a&apos;];
+            xmlHL_2000B[&apos;N3&apos;][&apos;N3.02&apos;] = segH[&apos;addressLine_b&apos;];
+            globCount++;
+            //N4
+            xmlHL_2000B[&apos;N4&apos;];
+            xmlHL_2000B[&apos;N4&apos;][&apos;N4.01&apos;] = segH[&apos;city&apos;];
+            xmlHL_2000B[&apos;N4&apos;][&apos;N4.02&apos;] = segH[&apos;stateCode&apos;];
+            xmlHL_2000B[&apos;N4&apos;][&apos;N4.03&apos;] = segH[&apos;postalCode&apos;];
+            xmlHL_2000B[&apos;N4&apos;][&apos;N4.04&apos;] = segH[&apos;countryCode&apos;];
+            xmlHL_2000B[&apos;N4&apos;][&apos;N4.05&apos;] = segH[&apos;subdivisionCode&apos;];
+            globCount++;
+            //PRV
+            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;receiverLevelInfo_2000B&apos;][i][&apos;receiverProviderInfo_2100B&apos;]
+            xmlHL_2000B[&apos;PRV&apos;]
+            xmlHL_2000B[&apos;PRV&apos;][&apos;PRV.01&apos;] = segH[&apos;providerCode&apos;];
+            xmlHL_2000B[&apos;PRV&apos;][&apos;PRV.02&apos;] = segH[&apos;idQualifier&apos;];
+            xmlHL_2000B[&apos;PRV&apos;][&apos;PRV.03&apos;] = segH[&apos;idCode&apos;];
+            globCount++;
+            header = header + SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(xmlHL_2000B);
+        }
+    }
+    HL02_parent++;
+    return header;
+}</script>
+          <type>JavaScript</type>
+          <data>
+            <entry>
+              <string>Script</string>
+              <string>function Content_2000A(gs, st, i) {
+    var header = &apos;&apos;;
+    //Loop ID - 2000A - sourceLevelInfo_2000A
+    var xmlHL_01_count = 1;
+    var HL02_parent = 1;
+    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;sourceLevelInfo_2000A&apos;];
+    if (exist(segH)) {
+        var lengthHL_2000A = segH.length;
+        for (var i = 0; i &lt; lengthHL_2000A; i++) {
+            var xmlHL_2000A = new XML(&quot;&lt;HL2000A&gt;&lt;/HL2000A&gt;&quot;);
+            xmlHL_2000A[&apos;HL&apos;];
+            xmlHL_2000A[&apos;HL&apos;][&apos;HL.01&apos;] = xmlHL_01_count;
+            xmlHL_2000A[&apos;HL&apos;][&apos;HL.03&apos;] = 20;
+            if (msg[0][&apos;receiverLevelInfo_2000B&apos;] != undefined || msg[0][&apos;receiverLevelInfo_2000B&apos;] != null) {
+                xmlHL_2000A[&apos;HL&apos;][&apos;HL.04&apos;] = 1;
+            } else {
+                xmlHL_2000A[&apos;HL&apos;][&apos;HL.04&apos;] = 0;
+            }
+
+            globCount++;
+            //NM1
+            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;sourceLevelInfo_2000A&apos;][i][&apos;sourceName_2100A&apos;]
+            xmlHL_2000A[&apos;NM1&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.01&apos;] = segH[&apos;eIdCode&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.02&apos;] = segH[&apos;eTypeQualifier&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.03&apos;] = segH[&apos;orgName&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.04&apos;] = segH[&apos;name_first&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.05&apos;] = segH[&apos;name_middle&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.07&apos;] = segH[&apos;name_suffix&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.08&apos;] = segH[&apos;idQualifier&apos;];
+            xmlHL_2000A[&apos;NM1&apos;][&apos;NM1.09&apos;] = segH[&apos;idCode&apos;];
+            globCount++;
+            var header = header + SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(xmlHL_2000A);
+        }
+    }
+    return header;
+}
+
+function Content_2000B(gs, st, i) {
+    var header = &apos;&apos;;
+    //Loop ID - 2000B - receiverLevelInfo_2000B
+    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;receiverLevelInfo_2000B&apos;];
+    if (exist(segH)) {
+        var lengthHL_2000B = segH.length;
+        var refCount = 0;
+        for (var i = 0; i &lt; lengthHL_2000B; i++) {
+            //HL
+            var xmlHL_2000B = new XML(&quot;&lt;HL2000B&gt;&lt;/HL2000B&gt;&quot;);
+            xmlHL_2000B[&apos;HL&apos;];
+            xmlHL_2000B[&apos;HL&apos;][&apos;HL.01&apos;] = xmlHL_01_count;
+            xmlHL_2000B[&apos;HL&apos;][&apos;HL.02&apos;] = HL02_parent;
+            xmlHL_2000B[&apos;HL&apos;][&apos;HL.03&apos;] = 21;
+            if (msg[0][&apos;subscriberInfo_2000C&apos;] != undefined || msg[0][&apos;subscriberInfo_2000C&apos;] != null) {
+                xmlHL_2000B[&apos;HL&apos;][&apos;HL.04&apos;] = 1;
+            } else {
+                xmlHL_2000B[&apos;HL&apos;][&apos;HL.04&apos;] = 0;
+            }
+            globCount++;
+            xmlHL_01_count++;
+            //NM1
+            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;receiverLevelInfo_2000B&apos;][i][&apos;receiverName_2100B&apos;]
+            xmlHL_2000B[&apos;NM1&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.01&apos;] = segH[&apos;eIdCode&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.02&apos;] = segH[&apos;eTypeQualifier&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.03&apos;] = segH[&apos;orgName&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.04&apos;] = segH[&apos;name_first&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.05&apos;] = segH[&apos;name_middle&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.07&apos;] = segH[&apos;name_suffix&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.08&apos;] = segH[&apos;idQualifier&apos;];
+            xmlHL_2000B[&apos;NM1&apos;][&apos;NM1.09&apos;] = segH[&apos;idCode&apos;];
+            globCount++;
+
+            //REF
+            for (var k = 0; k &lt; 9; k++) {
+                //xmlRef_2000B
+                if (msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;receiverLevelInfo_2000B&apos;][i][&apos;additionalId_2100B&apos;][k] !== undefined) {
+                    var xmlRef_2000B = new XML(&quot;&lt;REF&gt;&lt;/REF&gt;&quot;);
+                    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;receiverLevelInfo_2000B&apos;][i][&apos;additionalId_2100B&apos;][k]
+                    xmlRef_2000B[&apos;REF&apos;];
+                    xmlRef_2000B[&apos;REF.01&apos;] = segH[&apos;idQualifier&apos;];
+                    xmlRef_2000B[&apos;REF.02&apos;] = segH[&apos;idCode&apos;];
+                    xmlRef_2000B[&apos;REF.03&apos;] = segH[&apos;description&apos;];
+                    xmlHL_2000B.appendChild(xmlRef_2000B);
+                    globCount++;
+                }
+
+            }
+            //N3
+            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;receiverLevelInfo_2000B&apos;][i][&apos;receiverAddress_2100B&apos;]
+            xmlHL_2000B[&apos;N3&apos;];
+            xmlHL_2000B[&apos;N3&apos;][&apos;N3.01&apos;] = segH[&apos;addressLine_a&apos;];
+            xmlHL_2000B[&apos;N3&apos;][&apos;N3.02&apos;] = segH[&apos;addressLine_b&apos;];
+            globCount++;
+            //N4
+            xmlHL_2000B[&apos;N4&apos;];
+            xmlHL_2000B[&apos;N4&apos;][&apos;N4.01&apos;] = segH[&apos;city&apos;];
+            xmlHL_2000B[&apos;N4&apos;][&apos;N4.02&apos;] = segH[&apos;stateCode&apos;];
+            xmlHL_2000B[&apos;N4&apos;][&apos;N4.03&apos;] = segH[&apos;postalCode&apos;];
+            xmlHL_2000B[&apos;N4&apos;][&apos;N4.04&apos;] = segH[&apos;countryCode&apos;];
+            xmlHL_2000B[&apos;N4&apos;][&apos;N4.05&apos;] = segH[&apos;subdivisionCode&apos;];
+            globCount++;
+            //PRV
+            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;receiverLevelInfo_2000B&apos;][i][&apos;receiverProviderInfo_2100B&apos;]
+            xmlHL_2000B[&apos;PRV&apos;]
+            xmlHL_2000B[&apos;PRV&apos;][&apos;PRV.01&apos;] = segH[&apos;providerCode&apos;];
+            xmlHL_2000B[&apos;PRV&apos;][&apos;PRV.02&apos;] = segH[&apos;idQualifier&apos;];
+            xmlHL_2000B[&apos;PRV&apos;][&apos;PRV.03&apos;] = segH[&apos;idCode&apos;];
+            globCount++;
+            header = header + SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(xmlHL_2000B);
+        }
+    }
+    HL02_parent++;
+    return header;
+}</string>
+            </entry>
+          </data>
+        </step>
+        <step>
+          <sequenceNumber>2</sequenceNumber>
+          <name>Content_2000C</name>
+          <script>function Content_2000C(gs, st, i) {
+    //Loop ID - 2000C -subscriberInfo_2000C
+    //subscriberLevel_2000C
+    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;];
+    if (exist(segH)) {
+        var subscriberLevel = segH.length;
+        for (var i = 0; i &lt; subscriberLevel; i++) {
+            if (exist(segH)) {
+                var xmlHL_2000C = new XML(&quot;&lt;HL2000C&gt;&lt;/HL2000C&gt;&quot;);
+                xmlHL_2000C[&apos;HL&apos;];
+                xmlHL_2000C[&apos;HL&apos;][&apos;HL.01&apos;] = xmlHL_01_count;
+                xmlHL_2000C[&apos;HL&apos;][&apos;HL.02&apos;] = HL02_parent;
+                xmlHL_2000C[&apos;HL&apos;][&apos;HL.03&apos;] = 22;
+                if (msg[0][&apos;dependentInfo_2000D&apos;] != null || msg[0][&apos;dependentInfo_2000D&apos;] != &quot;&quot;) {
+                    xmlHL_2000C[&apos;HL&apos;][&apos;HL.04&apos;] = 1;
+                } else {
+                    xmlHL_2000C[&apos;HL&apos;][&apos;HL.04&apos;] = 0;
+                }
+                xmlHL_01_count++;
+                globCount++;
+                //traceNumber_2000C
+                for (k = 0; k &lt; 2; k++) {
+                    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;traceNumber_2000C&apos;][k];
+                    var xmlTRN_2000C = new XML(&quot;&lt;TRN&gt;&lt;/TRN&gt;&quot;);
+                    if (segH !== undefined) {
+                        xmlTRN_2000C[&apos;TRN&apos;];
+                        xmlTRN_2000C[&apos;TRN.01&apos;] = segH[&apos;typeCode&apos;];
+                        xmlTRN_2000C[&apos;TRN.02&apos;] = segH[&apos;referenceId_a&apos;];
+                        xmlTRN_2000C[&apos;TRN.03&apos;] = segH[&apos;companyIdentifier&apos;];
+                        xmlTRN_2000C[&apos;TRN.04&apos;] = segH[&apos;referenceId_b&apos;];
+                        globCount++;
+                        xmlHL_2000C.appendChild(xmlTRN_2000C);
+                    }
+                }
+            } else {
+                break;
+            }
+            //subscriberSpecifics_2100C
+            //subscriberName_2100C
+            if (exist(msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;])) {
+                var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;subscriberName_2100C&apos;];
+                xmlHL_2000C[&apos;NM1&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.01&apos;] = segH[&apos;eIdCode&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.02&apos;] = segH[&apos;eTypeQualifier&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.03&apos;] = segH[&apos;orgName&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.04&apos;] = segH[&apos;name_first&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.05&apos;] = segH[&apos;name_middle&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.07&apos;] = segH[&apos;name_suffix&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.08&apos;] = segH[&apos;idQualifier&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.09&apos;] = segH[&apos;idCode&apos;];
+                globCount++;
+
+                //additionalId_2100C
+                for (var k = 0; k &lt; 9; k++) {
+                    var xmlREF_2000C = new XML(&quot;&lt;REF&gt;&lt;/REF&gt;&quot;);
+                    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;additionalId_2100C&apos;][k];
+                    if (segH != undefined) {
+                        xmlREF_2000C[&apos;REF&apos;];
+                        xmlREF_2000C[&apos;REF.01&apos;] = segH[&apos;idQualifier&apos;];
+                        xmlREF_2000C[&apos;REF.02&apos;] = segH[&apos;idCode&apos;];
+                        xmlHL_2000C.appendChild(xmlREF_2000C);
+                        globCount++;
+                    }
+                }
+                //subscriberAddress_2100C
+                //N3
+                if (exist(msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;subscriberAddress_2100C&apos;])) {
+                    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;subscriberAddress_2100C&apos;];
+                    xmlHL_2000C[&apos;N3&apos;];
+                    xmlHL_2000C[&apos;N3&apos;][&apos;N3.01&apos;] = segH[&apos;addressLine_a&apos;];
+                    xmlHL_2000C[&apos;N3&apos;][&apos;N3.02&apos;] = segH[&apos;addressLine_b&apos;];
+                    globCount++;
+                }
+                //N4
+                xmlHL_2000C[&apos;N4&apos;];
+                xmlHL_2000C[&apos;N4&apos;][&apos;N4.01&apos;] = segH[&apos;city&apos;];
+                xmlHL_2000C[&apos;N4&apos;][&apos;N4.02&apos;] = segH[&apos;stateCode&apos;];
+                xmlHL_2000C[&apos;N4&apos;][&apos;N4.03&apos;] = segH[&apos;postalCode&apos;];
+                xmlHL_2000C[&apos;N4&apos;][&apos;N4.04&apos;] = segH[&apos;countryCode&apos;];
+                xmlHL_2000C[&apos;N4&apos;][&apos;N4.05&apos;] = segH[&apos;subdivisionCode&apos;];
+                globCount++;
+                //providerInfo_2100C
+                var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;providerInfo_2100C&apos;];
+                xmlHL_2000C[&apos;PRV&apos;];
+                xmlHL_2000C[&apos;PRV&apos;][&apos;PRV.01&apos;] = segH[&apos;providerCode&apos;];
+                xmlHL_2000C[&apos;PRV&apos;][&apos;PRV.02&apos;] = segH[&apos;idQualifier&apos;];
+                xmlHL_2000C[&apos;PRV&apos;][&apos;PRV.03&apos;] = segH[&apos;idCode&apos;];
+                globCount++;
+                //demographicInfo_2100C
+                var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;demographicInfo_2100C&apos;];
+                xmlHL_2000C[&apos;DMG&apos;];
+                xmlHL_2000C[&apos;DMG&apos;][&apos;DMG.01&apos;] = segH[&apos;dateTimeFormat&apos;]
+                xmlHL_2000C[&apos;DMG&apos;][&apos;DMG.02&apos;] = segH[&apos;dateTimePeriod&apos;]
+                xmlHL_2000C[&apos;DMG&apos;][&apos;DMG.03&apos;] = segH[&apos;genderCode&apos;]
+                globCount++;
+                //birthSequenceNumber_2100C
+                var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;birthSequenceNumber_2100C&apos;];
+                xmlHL_2000C[&apos;INS&apos;];
+                xmlHL_2000C[&apos;INS&apos;][&apos;INS.01&apos;] = segH[&apos;responseCode&apos;];
+                xmlHL_2000C[&apos;INS&apos;][&apos;INS.02&apos;] = segH[&apos;relationshipCode&apos;];
+                xmlHL_2000C[&apos;INS&apos;][&apos;INS.17&apos;] = segH[&apos;number&apos;];
+                globCount++;
+                //healthCareDiagnosisCode_2100C
+                var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;healthCareDiagnosisCode_2100C&apos;];
+                xmlHL_2000C[&apos;HI&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.01&apos;] = segH[&apos;healthCodeInfo_a&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.01&apos;][&apos;HI.01.02&apos;] = segH[&apos;qualifierCode_a&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.01&apos;][&apos;HI.01.03&apos;] = segH[&apos;industryCode_a&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.02&apos;] = segH[&apos;healthCodeInfo_b&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.02&apos;][&apos;HI.02.02&apos;] = segH[&apos;qualifierCode_b&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.02&apos;][&apos;HI.02.03&apos;] = segH[&apos;industryCode_b&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.03&apos;] = segH[&apos;healthCodeInfo_c&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.03&apos;][&apos;HI.03.02&apos;] = segH[&apos;qualifierCode_c&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.03&apos;][&apos;HI.03.03&apos;] = segH[&apos;industryCode_c&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.04&apos;] = segH[&apos;healthCodeInfo_d&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.04&apos;][&apos;HI.04.02&apos;] = segH[&apos;qualifierCode_d&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.04&apos;][&apos;HI.04.03&apos;] = segH[&apos;industryCode_d&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.05&apos;] = segH[&apos;healthCodeInfo_e&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.05&apos;][&apos;HI.05.02&apos;] = segH[&apos;qualifierCode_e&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.05&apos;][&apos;HI.05.03&apos;] = segH[&apos;industryCode_e&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.06&apos;] = segH[&apos;healthCodeInfo_f&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.06&apos;][&apos;HI.06.02&apos;] = segH[&apos;qualifierCode_f&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.06&apos;][&apos;HI.06.03&apos;] = segH[&apos;industryCode_f&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.07&apos;] = segH[&apos;healthCodeInfo_g&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.07&apos;][&apos;HI.07.02&apos;] = segH[&apos;qualifierCode_g&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.07&apos;][&apos;HI.07.03&apos;] = segH[&apos;industryCode_g&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.08&apos;] = segH[&apos;healthCodeInfo_h&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.08&apos;][&apos;HI.08.02&apos;] = segH[&apos;qualifierCode_h&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.08&apos;][&apos;HI.08.03&apos;] = segH[&apos;industryCode_h&apos;];
+                globCount++;
+                //subscriberDate_2100C
+                for (var k = 0; k &lt; 2; k++) {
+                    var xmlDTP_2000C = new XML(&quot;&lt;DTP&gt;&lt;/DTP&gt;&quot;);
+                    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;subscriberDate_2100C&apos;][k];
+                    if (segH !== undefined) {
+                        xmlDTP_2000C[&apos;DTP&apos;];
+                        xmlDTP_2000C[&apos;DTP.01&apos;] = segH[&apos;dateTimeQualifier&apos;];
+                        xmlDTP_2000C[&apos;DTP.02&apos;] = segH[&apos;dateTimeFormat&apos;];
+                        xmlDTP_2000C[&apos;DTP.03&apos;] = segH[&apos;dateTimePeriod&apos;];
+                        xmlHL_2000C.appendChild(xmlDTP_2000C);
+                        globCount++;
+                    }
+                }
+                //Begin 2110 loop
+                //2110C
+                //eligibilityInfo_2110C
+                if (msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;] !== undefined) {
+                    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;];
+                    var segLen = segH.length;
+                    if (exist(segH)) {
+                        for (var len = 0; len &lt; segLen; len++) {
+                            //benefitInquiry_2110C
+                            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;][len][&apos;benefitInquiry_2110C&apos;];
+                            var eligibilityEq_2110C = new XML(&quot;&lt;EQ&gt;&lt;/EQ&gt;&quot;);
+                            eligibilityEq_2110C[&apos;EQ.01&apos;] = segH[&apos;typeCode&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;] = segH[&apos;procedureId&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;][&apos;EQ.02.02&apos;] = segH[&apos;serviceIdQualifier&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;][&apos;EQ.02.03&apos;] = segH[&apos;serviceId&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;][&apos;EQ.02.04&apos;] = segH[&apos;procedureModifier_a&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;][&apos;EQ.02.05&apos;] = segH[&apos;procedureModifier_b&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;][&apos;EQ.02.06&apos;] = segH[&apos;procedureModifier_c&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;][&apos;EQ.02.07&apos;] = segH[&apos;procedureModifier_d&apos;];
+                            eligibilityEq_2110C[&apos;EQ.03&apos;] = segH[&apos;levelCode&apos;];
+                            eligibilityEq_2110C[&apos;EQ.05&apos;] = segH[&apos;compositeCodePointer&apos;];
+                            eligibilityEq_2110C[&apos;EQ.05&apos;][&apos;EQ.05.02&apos;] = segH[&apos;diagnosisCodePointer_a&apos;];
+                            eligibilityEq_2110C[&apos;EQ.05&apos;][&apos;EQ.05.03&apos;] = segH[&apos;diagnosisCodePointer_b&apos;];
+                            eligibilityEq_2110C[&apos;EQ.05&apos;][&apos;EQ.05.04&apos;] = segH[&apos;diagnosisCodePointer_c&apos;];
+                            //eligibilityEq_2110C[&apos;EQ.05&apos;][&apos;EQ.05.05&apos;] = segH[&apos;diagnosisCodePointer_d&apos;];
+                            xmlHL_2000C.appendChild(eligibilityEq_2110C);
+                            globCount++;
+                            //spendDownAmount_2110C
+                            var eligibilityAmt_2110C = new XML(&quot;&lt;AMT&gt;&lt;/AMT&gt;&quot;);
+                            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;][len][&apos;spendDownAmount_2110C&apos;];
+                            eligibilityAmt_2110C[&apos;AMT&apos;];
+                            eligibilityAmt_2110C[&apos;AMT.01&apos;] = segH[&apos;amountQualifierCode&apos;];
+                            eligibilityAmt_2110C[&apos;AMT.02&apos;] = segH[&apos;amount&apos;];
+                            xmlHL_2000C.appendChild(eligibilityAmt_2110C);
+                            globCount++;
+                            //spendDownTotalAmount_2110C
+                            var eligibilityAmt1_2110C = new XML(&quot;&lt;AMT&gt;&lt;/AMT&gt;&quot;);
+                            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;][len][&apos;spendDownTotalAmount_2110C&apos;]
+                            eligibilityAmt1_2110C[&apos;AMT&apos;];
+                            eligibilityAmt1_2110C[&apos;AMT.01&apos;] = segH[&apos;amountQualifierCode&apos;];
+                            eligibilityAmt1_2110C[&apos;AMT.02&apos;] = segH[&apos;amount&apos;];
+                            xmlHL_2000C.appendChild(eligibilityAmt1_2110C);
+                            globCount++;
+                            //eligibilityInformation_2110C
+                            var eligibilityIii_2110C = new XML(&quot;&lt;III&gt;&lt;/III&gt;&quot;);
+                            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;][len][&apos;eligibilityInformation_2110C&apos;];
+                            eligibilityIii_2110C[&apos;III&apos;];
+                            eligibilityIii_2110C[&apos;III.01&apos;] = segH[&apos;qualifierCode&apos;];
+                            eligibilityIii_2110C[&apos;III.02&apos;] = segH[&apos;industryCode&apos;];
+                            xmlHL_2000C.appendChild(eligibilityIii_2110C);
+                            globCount++;
+                            //additionalInformation_2110C
+                            var eligibilityRef_2110C = new XML(&quot;&lt;REF&gt;&lt;/REF&gt;&quot;);
+                            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;][len][&apos;additionalInformation_2110C&apos;];
+                            eligibilityRef_2110C[&apos;REF&apos;];
+                            eligibilityRef_2110C[&apos;REF.01&apos;] = segH[&apos;idQualifier&apos;];
+                            eligibilityRef_2110C[&apos;REF.02&apos;] = segH[&apos;idCode&apos;];
+                            xmlHL_2000C.appendChild(eligibilityRef_2110C);
+                            globCount++;
+                            //subscriberEligibilityDate_2110C
+                            var eligibilityDtp_2110C = new XML(&quot;&lt;DTP&gt;&lt;/DTP&gt;&quot;);
+                            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;][len][&apos;subscriberEligibilityDate_2110C&apos;];
+                            eligibilityDtp_2110C[&apos;DTP&apos;];
+                            eligibilityDtp_2110C[&apos;DTP.01&apos;] = segH[&apos;dateTimeQualifier&apos;];
+                            eligibilityDtp_2110C[&apos;DTP.02&apos;] = segH[&apos;dateTimeFormat&apos;];
+                            eligibilityDtp_2110C[&apos;DTP.03&apos;] = segH[&apos;dateTimePeriod&apos;];
+                            xmlHL_2000C.appendChild(eligibilityDtp_2110C);
+                            globCount++;
+                        }
+                    }
+
+                }
+            }
+            //End Loop 2110C
+            var header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(xmlHL_2000C);
+        }
+    }
+    HL02_parent++;
+    //End loop 2000C
+    return header;
+}</script>
+          <type>JavaScript</type>
+          <data>
+            <entry>
+              <string>Script</string>
+              <string>function Content_2000C(gs, st, i) {
+    //Loop ID - 2000C -subscriberInfo_2000C
+    //subscriberLevel_2000C
+    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;];
+    if (exist(segH)) {
+        var subscriberLevel = segH.length;
+        for (var i = 0; i &lt; subscriberLevel; i++) {
+            if (exist(segH)) {
+                var xmlHL_2000C = new XML(&quot;&lt;HL2000C&gt;&lt;/HL2000C&gt;&quot;);
+                xmlHL_2000C[&apos;HL&apos;];
+                xmlHL_2000C[&apos;HL&apos;][&apos;HL.01&apos;] = xmlHL_01_count;
+                xmlHL_2000C[&apos;HL&apos;][&apos;HL.02&apos;] = HL02_parent;
+                xmlHL_2000C[&apos;HL&apos;][&apos;HL.03&apos;] = 22;
+                if (msg[0][&apos;dependentInfo_2000D&apos;] != null || msg[0][&apos;dependentInfo_2000D&apos;] != &quot;&quot;) {
+                    xmlHL_2000C[&apos;HL&apos;][&apos;HL.04&apos;] = 1;
+                } else {
+                    xmlHL_2000C[&apos;HL&apos;][&apos;HL.04&apos;] = 0;
+                }
+                xmlHL_01_count++;
+                globCount++;
+                //traceNumber_2000C
+                for (k = 0; k &lt; 2; k++) {
+                    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;traceNumber_2000C&apos;][k];
+                    var xmlTRN_2000C = new XML(&quot;&lt;TRN&gt;&lt;/TRN&gt;&quot;);
+                    if (segH !== undefined) {
+                        xmlTRN_2000C[&apos;TRN&apos;];
+                        xmlTRN_2000C[&apos;TRN.01&apos;] = segH[&apos;typeCode&apos;];
+                        xmlTRN_2000C[&apos;TRN.02&apos;] = segH[&apos;referenceId_a&apos;];
+                        xmlTRN_2000C[&apos;TRN.03&apos;] = segH[&apos;companyIdentifier&apos;];
+                        xmlTRN_2000C[&apos;TRN.04&apos;] = segH[&apos;referenceId_b&apos;];
+                        globCount++;
+                        xmlHL_2000C.appendChild(xmlTRN_2000C);
+                    }
+                }
+            } else {
+                break;
+            }
+            //subscriberSpecifics_2100C
+            //subscriberName_2100C
+            if (exist(msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;])) {
+                var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;subscriberName_2100C&apos;];
+                xmlHL_2000C[&apos;NM1&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.01&apos;] = segH[&apos;eIdCode&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.02&apos;] = segH[&apos;eTypeQualifier&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.03&apos;] = segH[&apos;orgName&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.04&apos;] = segH[&apos;name_first&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.05&apos;] = segH[&apos;name_middle&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.07&apos;] = segH[&apos;name_suffix&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.08&apos;] = segH[&apos;idQualifier&apos;];
+                xmlHL_2000C[&apos;NM1&apos;][&apos;NM1.09&apos;] = segH[&apos;idCode&apos;];
+                globCount++;
+
+                //additionalId_2100C
+                for (var k = 0; k &lt; 9; k++) {
+                    var xmlREF_2000C = new XML(&quot;&lt;REF&gt;&lt;/REF&gt;&quot;);
+                    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;additionalId_2100C&apos;][k];
+                    if (segH != undefined) {
+                        xmlREF_2000C[&apos;REF&apos;];
+                        xmlREF_2000C[&apos;REF.01&apos;] = segH[&apos;idQualifier&apos;];
+                        xmlREF_2000C[&apos;REF.02&apos;] = segH[&apos;idCode&apos;];
+                        xmlHL_2000C.appendChild(xmlREF_2000C);
+                        globCount++;
+                    }
+                }
+                //subscriberAddress_2100C
+                //N3
+                if (exist(msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;subscriberAddress_2100C&apos;])) {
+                    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;subscriberAddress_2100C&apos;];
+                    xmlHL_2000C[&apos;N3&apos;];
+                    xmlHL_2000C[&apos;N3&apos;][&apos;N3.01&apos;] = segH[&apos;addressLine_a&apos;];
+                    xmlHL_2000C[&apos;N3&apos;][&apos;N3.02&apos;] = segH[&apos;addressLine_b&apos;];
+                    globCount++;
+                }
+                //N4
+                xmlHL_2000C[&apos;N4&apos;];
+                xmlHL_2000C[&apos;N4&apos;][&apos;N4.01&apos;] = segH[&apos;city&apos;];
+                xmlHL_2000C[&apos;N4&apos;][&apos;N4.02&apos;] = segH[&apos;stateCode&apos;];
+                xmlHL_2000C[&apos;N4&apos;][&apos;N4.03&apos;] = segH[&apos;postalCode&apos;];
+                xmlHL_2000C[&apos;N4&apos;][&apos;N4.04&apos;] = segH[&apos;countryCode&apos;];
+                xmlHL_2000C[&apos;N4&apos;][&apos;N4.05&apos;] = segH[&apos;subdivisionCode&apos;];
+                globCount++;
+                //providerInfo_2100C
+                var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;providerInfo_2100C&apos;];
+                xmlHL_2000C[&apos;PRV&apos;];
+                xmlHL_2000C[&apos;PRV&apos;][&apos;PRV.01&apos;] = segH[&apos;providerCode&apos;];
+                xmlHL_2000C[&apos;PRV&apos;][&apos;PRV.02&apos;] = segH[&apos;idQualifier&apos;];
+                xmlHL_2000C[&apos;PRV&apos;][&apos;PRV.03&apos;] = segH[&apos;idCode&apos;];
+                globCount++;
+                //demographicInfo_2100C
+                var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;demographicInfo_2100C&apos;];
+                xmlHL_2000C[&apos;DMG&apos;];
+                xmlHL_2000C[&apos;DMG&apos;][&apos;DMG.01&apos;] = segH[&apos;dateTimeFormat&apos;]
+                xmlHL_2000C[&apos;DMG&apos;][&apos;DMG.02&apos;] = segH[&apos;dateTimePeriod&apos;]
+                xmlHL_2000C[&apos;DMG&apos;][&apos;DMG.03&apos;] = segH[&apos;genderCode&apos;]
+                globCount++;
+                //birthSequenceNumber_2100C
+                var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;birthSequenceNumber_2100C&apos;];
+                xmlHL_2000C[&apos;INS&apos;];
+                xmlHL_2000C[&apos;INS&apos;][&apos;INS.01&apos;] = segH[&apos;responseCode&apos;];
+                xmlHL_2000C[&apos;INS&apos;][&apos;INS.02&apos;] = segH[&apos;relationshipCode&apos;];
+                xmlHL_2000C[&apos;INS&apos;][&apos;INS.17&apos;] = segH[&apos;number&apos;];
+                globCount++;
+                //healthCareDiagnosisCode_2100C
+                var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;healthCareDiagnosisCode_2100C&apos;];
+                xmlHL_2000C[&apos;HI&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.01&apos;] = segH[&apos;healthCodeInfo_a&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.01&apos;][&apos;HI.01.02&apos;] = segH[&apos;qualifierCode_a&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.01&apos;][&apos;HI.01.03&apos;] = segH[&apos;industryCode_a&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.02&apos;] = segH[&apos;healthCodeInfo_b&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.02&apos;][&apos;HI.02.02&apos;] = segH[&apos;qualifierCode_b&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.02&apos;][&apos;HI.02.03&apos;] = segH[&apos;industryCode_b&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.03&apos;] = segH[&apos;healthCodeInfo_c&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.03&apos;][&apos;HI.03.02&apos;] = segH[&apos;qualifierCode_c&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.03&apos;][&apos;HI.03.03&apos;] = segH[&apos;industryCode_c&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.04&apos;] = segH[&apos;healthCodeInfo_d&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.04&apos;][&apos;HI.04.02&apos;] = segH[&apos;qualifierCode_d&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.04&apos;][&apos;HI.04.03&apos;] = segH[&apos;industryCode_d&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.05&apos;] = segH[&apos;healthCodeInfo_e&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.05&apos;][&apos;HI.05.02&apos;] = segH[&apos;qualifierCode_e&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.05&apos;][&apos;HI.05.03&apos;] = segH[&apos;industryCode_e&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.06&apos;] = segH[&apos;healthCodeInfo_f&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.06&apos;][&apos;HI.06.02&apos;] = segH[&apos;qualifierCode_f&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.06&apos;][&apos;HI.06.03&apos;] = segH[&apos;industryCode_f&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.07&apos;] = segH[&apos;healthCodeInfo_g&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.07&apos;][&apos;HI.07.02&apos;] = segH[&apos;qualifierCode_g&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.07&apos;][&apos;HI.07.03&apos;] = segH[&apos;industryCode_g&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.08&apos;] = segH[&apos;healthCodeInfo_h&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.08&apos;][&apos;HI.08.02&apos;] = segH[&apos;qualifierCode_h&apos;];
+                xmlHL_2000C[&apos;HI&apos;][&apos;HI.08&apos;][&apos;HI.08.03&apos;] = segH[&apos;industryCode_h&apos;];
+                globCount++;
+                //subscriberDate_2100C
+                for (var k = 0; k &lt; 2; k++) {
+                    var xmlDTP_2000C = new XML(&quot;&lt;DTP&gt;&lt;/DTP&gt;&quot;);
+                    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;subscriberDate_2100C&apos;][k];
+                    if (segH !== undefined) {
+                        xmlDTP_2000C[&apos;DTP&apos;];
+                        xmlDTP_2000C[&apos;DTP.01&apos;] = segH[&apos;dateTimeQualifier&apos;];
+                        xmlDTP_2000C[&apos;DTP.02&apos;] = segH[&apos;dateTimeFormat&apos;];
+                        xmlDTP_2000C[&apos;DTP.03&apos;] = segH[&apos;dateTimePeriod&apos;];
+                        xmlHL_2000C.appendChild(xmlDTP_2000C);
+                        globCount++;
+                    }
+                }
+                //Begin 2110 loop
+                //2110C
+                //eligibilityInfo_2110C
+                if (msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;] !== undefined) {
+                    var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;];
+                    var segLen = segH.length;
+                    if (exist(segH)) {
+                        for (var len = 0; len &lt; segLen; len++) {
+                            //benefitInquiry_2110C
+                            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;][len][&apos;benefitInquiry_2110C&apos;];
+                            var eligibilityEq_2110C = new XML(&quot;&lt;EQ&gt;&lt;/EQ&gt;&quot;);
+                            eligibilityEq_2110C[&apos;EQ.01&apos;] = segH[&apos;typeCode&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;] = segH[&apos;procedureId&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;][&apos;EQ.02.02&apos;] = segH[&apos;serviceIdQualifier&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;][&apos;EQ.02.03&apos;] = segH[&apos;serviceId&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;][&apos;EQ.02.04&apos;] = segH[&apos;procedureModifier_a&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;][&apos;EQ.02.05&apos;] = segH[&apos;procedureModifier_b&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;][&apos;EQ.02.06&apos;] = segH[&apos;procedureModifier_c&apos;];
+                            eligibilityEq_2110C[&apos;EQ.02&apos;][&apos;EQ.02.07&apos;] = segH[&apos;procedureModifier_d&apos;];
+                            eligibilityEq_2110C[&apos;EQ.03&apos;] = segH[&apos;levelCode&apos;];
+                            eligibilityEq_2110C[&apos;EQ.05&apos;] = segH[&apos;compositeCodePointer&apos;];
+                            eligibilityEq_2110C[&apos;EQ.05&apos;][&apos;EQ.05.02&apos;] = segH[&apos;diagnosisCodePointer_a&apos;];
+                            eligibilityEq_2110C[&apos;EQ.05&apos;][&apos;EQ.05.03&apos;] = segH[&apos;diagnosisCodePointer_b&apos;];
+                            eligibilityEq_2110C[&apos;EQ.05&apos;][&apos;EQ.05.04&apos;] = segH[&apos;diagnosisCodePointer_c&apos;];
+                            //eligibilityEq_2110C[&apos;EQ.05&apos;][&apos;EQ.05.05&apos;] = segH[&apos;diagnosisCodePointer_d&apos;];
+                            xmlHL_2000C.appendChild(eligibilityEq_2110C);
+                            globCount++;
+                            //spendDownAmount_2110C
+                            var eligibilityAmt_2110C = new XML(&quot;&lt;AMT&gt;&lt;/AMT&gt;&quot;);
+                            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;][len][&apos;spendDownAmount_2110C&apos;];
+                            eligibilityAmt_2110C[&apos;AMT&apos;];
+                            eligibilityAmt_2110C[&apos;AMT.01&apos;] = segH[&apos;amountQualifierCode&apos;];
+                            eligibilityAmt_2110C[&apos;AMT.02&apos;] = segH[&apos;amount&apos;];
+                            xmlHL_2000C.appendChild(eligibilityAmt_2110C);
+                            globCount++;
+                            //spendDownTotalAmount_2110C
+                            var eligibilityAmt1_2110C = new XML(&quot;&lt;AMT&gt;&lt;/AMT&gt;&quot;);
+                            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;][len][&apos;spendDownTotalAmount_2110C&apos;]
+                            eligibilityAmt1_2110C[&apos;AMT&apos;];
+                            eligibilityAmt1_2110C[&apos;AMT.01&apos;] = segH[&apos;amountQualifierCode&apos;];
+                            eligibilityAmt1_2110C[&apos;AMT.02&apos;] = segH[&apos;amount&apos;];
+                            xmlHL_2000C.appendChild(eligibilityAmt1_2110C);
+                            globCount++;
+                            //eligibilityInformation_2110C
+                            var eligibilityIii_2110C = new XML(&quot;&lt;III&gt;&lt;/III&gt;&quot;);
+                            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;][len][&apos;eligibilityInformation_2110C&apos;];
+                            eligibilityIii_2110C[&apos;III&apos;];
+                            eligibilityIii_2110C[&apos;III.01&apos;] = segH[&apos;qualifierCode&apos;];
+                            eligibilityIii_2110C[&apos;III.02&apos;] = segH[&apos;industryCode&apos;];
+                            xmlHL_2000C.appendChild(eligibilityIii_2110C);
+                            globCount++;
+                            //additionalInformation_2110C
+                            var eligibilityRef_2110C = new XML(&quot;&lt;REF&gt;&lt;/REF&gt;&quot;);
+                            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;][len][&apos;additionalInformation_2110C&apos;];
+                            eligibilityRef_2110C[&apos;REF&apos;];
+                            eligibilityRef_2110C[&apos;REF.01&apos;] = segH[&apos;idQualifier&apos;];
+                            eligibilityRef_2110C[&apos;REF.02&apos;] = segH[&apos;idCode&apos;];
+                            xmlHL_2000C.appendChild(eligibilityRef_2110C);
+                            globCount++;
+                            //subscriberEligibilityDate_2110C
+                            var eligibilityDtp_2110C = new XML(&quot;&lt;DTP&gt;&lt;/DTP&gt;&quot;);
+                            var segH = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;subscriberInfo_2000C&apos;][i][&apos;subscriberSpecifics_2100C&apos;][&apos;eligibilityInfo_2110C&apos;][len][&apos;subscriberEligibilityDate_2110C&apos;];
+                            eligibilityDtp_2110C[&apos;DTP&apos;];
+                            eligibilityDtp_2110C[&apos;DTP.01&apos;] = segH[&apos;dateTimeQualifier&apos;];
+                            eligibilityDtp_2110C[&apos;DTP.02&apos;] = segH[&apos;dateTimeFormat&apos;];
+                            eligibilityDtp_2110C[&apos;DTP.03&apos;] = segH[&apos;dateTimePeriod&apos;];
+                            xmlHL_2000C.appendChild(eligibilityDtp_2110C);
+                            globCount++;
+                        }
+                    }
+
+                }
+            }
+            //End Loop 2110C
+            var header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(xmlHL_2000C);
+        }
+    }
+    HL02_parent++;
+    //End loop 2000C
+    return header;
+}</string>
+            </entry>
+          </data>
+        </step>
+        <step>
+          <sequenceNumber>3</sequenceNumber>
+          <name>Trailer</name>
+          <script>function IEAtrailer() {
+  	var ediIEATrailer = new XML (&quot;&lt;ieatrailer&gt;&lt;/ieatrailer&gt;&quot;);
+    ediIEATrailer[&apos;IEA&apos;] 
+    ediIEATrailer[&apos;IEA&apos;][&apos;IEA.01&apos;]= gsCount;
+    ediIEATrailer[&apos;IEA&apos;][&apos;IEA.02&apos;] = msg[0][&apos;authorizationInfo_x12Header&apos;][&apos;controlNumber&apos;]; //controlNumber of IEA is same as that of ISA
+    var header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(ediIEATrailer);
+    return header;
+}</script>
+          <type>JavaScript</type>
+          <data>
+            <entry>
+              <string>Script</string>
+              <string>function IEAtrailer() {
+  	var ediIEATrailer = new XML (&quot;&lt;ieatrailer&gt;&lt;/ieatrailer&gt;&quot;);
+    ediIEATrailer[&apos;IEA&apos;] 
+    ediIEATrailer[&apos;IEA&apos;][&apos;IEA.01&apos;]= gsCount;
+    ediIEATrailer[&apos;IEA&apos;][&apos;IEA.02&apos;] = msg[0][&apos;authorizationInfo_x12Header&apos;][&apos;controlNumber&apos;]; //controlNumber of IEA is same as that of ISA
+    var header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(ediIEATrailer);
+    return header;
+}</string>
+            </entry>
+          </data>
+        </step>
+        <step>
+          <sequenceNumber>4</sequenceNumber>
+          <name>PrintData</name>
+          <script>var gsLen = msg[0][&apos;applicationInfo_x12Header&apos;].length;
+var header = &apos;&apos;;
+header = isaHeader();
+for (x = 0; x &lt; gsLen; x++) {
+    header = header + gsHeader(x);
+    var stLen = msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;].length;
+    for (y = 0; y &lt; stLen; y++) {
+        header = header + stHeader(x, y);
+
+        function GStrailer(gs) {
+            var ediGSTrailer = new XML(&quot;&lt;gstrailer&gt;&lt;/gstrailer&gt;&quot;);
+            ediGSTrailer[&apos;GE&apos;];
+            ediGSTrailer[&apos;GE&apos;][&apos;GE.01&apos;] = y; //stCount;
+            ediGSTrailer[&apos;GE&apos;][&apos;GE.02&apos;] = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;controlNumber&apos;]; //ControlNumber of GE is same as that of GS
+            var header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(ediGSTrailer);
+            return header;
+        }
+        if (msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;][y][&apos;sourceLevelInfo_2000A&apos;] != undefined) {
+            var len2000A = msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;][y][&apos;sourceLevelInfo_2000A&apos;].length;
+            header = header + Content_2000A(x, y, z);
+        }
+        if (msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;][y][&apos;receiverLevelInfo_2000B&apos;] != undefined) {
+            var len2000B = msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;][y][&apos;receiverLevelInfo_2000B&apos;].length;
+            header = header + Content_2000B(x, y, z);
+        }
+        if (msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;][y][&apos;subscriberInfo_2000C&apos;] != undefined) {
+            var len2000C = msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;][y][&apos;subscriberInfo_2000C&apos;].length;
+            for (var z = 0; z &lt; len2000C; z++) {
+                header = header + Content_2000C(x, y, z);
+            }
+        }
+        function SEtrailer(gs, st) {
+            var ediXmlTrailer = new XML(&quot;&lt;trailer&gt;&lt;/trailer&gt;&quot;);
+            ediXmlTrailer[&apos;SE&apos;];
+            ediXmlTrailer[&apos;SE&apos;][&apos;SE.01&apos;] = globCount + 1; //number of Data available including ST and SE
+            ediXmlTrailer[&apos;SE&apos;][&apos;SE.02&apos;] = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;controlNumber&apos;]; //ControlNumber of SE is same as that of SE
+            var header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(ediXmlTrailer);
+            globCount = 0;
+            return header;
+        }
+        header = header + SEtrailer(x, y);
+    }
+    header = header + GStrailer(x);
+}
+header = header + IEAtrailer();
+header = header.replace(/~/g, &apos;~\n&apos;);
+channelMap.put(&apos;ediOutput&apos;, header);
+logger.info(header);</script>
+          <type>JavaScript</type>
+          <data>
+            <entry>
+              <string>Script</string>
+              <string>var gsLen = msg[0][&apos;applicationInfo_x12Header&apos;].length;
+var header = &apos;&apos;;
+header = isaHeader();
+for (x = 0; x &lt; gsLen; x++) {
+    header = header + gsHeader(x);
+    var stLen = msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;].length;
+    for (y = 0; y &lt; stLen; y++) {
+        header = header + stHeader(x, y);
+
+        function GStrailer(gs) {
+            var ediGSTrailer = new XML(&quot;&lt;gstrailer&gt;&lt;/gstrailer&gt;&quot;);
+            ediGSTrailer[&apos;GE&apos;];
+            ediGSTrailer[&apos;GE&apos;][&apos;GE.01&apos;] = y; //stCount;
+            ediGSTrailer[&apos;GE&apos;][&apos;GE.02&apos;] = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;controlNumber&apos;]; //ControlNumber of GE is same as that of GS
+            var header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(ediGSTrailer);
+            return header;
+        }
+        if (msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;][y][&apos;sourceLevelInfo_2000A&apos;] != undefined) {
+            var len2000A = msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;][y][&apos;sourceLevelInfo_2000A&apos;].length;
+            header = header + Content_2000A(x, y, z);
+        }
+        if (msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;][y][&apos;receiverLevelInfo_2000B&apos;] != undefined) {
+            var len2000B = msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;][y][&apos;receiverLevelInfo_2000B&apos;].length;
+            header = header + Content_2000B(x, y, z);
+        }
+        if (msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;][y][&apos;subscriberInfo_2000C&apos;] != undefined) {
+            var len2000C = msg[0][&apos;applicationInfo_x12Header&apos;][x][&apos;transactionInfo_messageHeader&apos;][y][&apos;subscriberInfo_2000C&apos;].length;
+            for (var z = 0; z &lt; len2000C; z++) {
+                header = header + Content_2000C(x, y, z);
+            }
+        }
+        function SEtrailer(gs, st) {
+            var ediXmlTrailer = new XML(&quot;&lt;trailer&gt;&lt;/trailer&gt;&quot;);
+            ediXmlTrailer[&apos;SE&apos;];
+            ediXmlTrailer[&apos;SE&apos;][&apos;SE.01&apos;] = globCount + 1; //number of Data available including ST and SE
+            ediXmlTrailer[&apos;SE&apos;][&apos;SE.02&apos;] = msg[0][&apos;applicationInfo_x12Header&apos;][gs][&apos;transactionInfo_messageHeader&apos;][st][&apos;controlNumber&apos;]; //ControlNumber of SE is same as that of SE
+            var header = SerializerFactory.getSerializer(&apos;EDI/X12&apos;).fromXML(ediXmlTrailer);
+            globCount = 0;
+            return header;
+        }
+        header = header + SEtrailer(x, y);
+    }
+    header = header + GStrailer(x);
+}
+header = header + IEAtrailer();
+header = header.replace(/~/g, &apos;~\n&apos;);
+channelMap.put(&apos;ediOutput&apos;, header);
+logger.info(header);</string>
+            </entry>
+          </data>
+        </step>
+      </steps>
+      <inboundTemplate encoding="base64">W3sKCSJhdXRob3JpemF0aW9uSW5mb194MTJIZWFkZXIiOiB7CgkJImF1dGhRdWFsaWZpZXIiOiAi
+MDAiLAoJCSJhdXRoSW5mbyI6ICIgICAgICAgICAgIiwKCQkic2VjUXVhbGlmaWVyIjogIjAwIiwK
+CQkic2VjSW5mbyI6ICIgICAgICAgICAgIiwKCQkiaWNRdWFsaWZpZXIiOiAienoiLAoJCSJpY1Nl
+bmRlcklkIjogIlNFTkRFUklEIiwKCQkiaWRRdWFsaWZpZXIiOiAiMDEiLAoJCSJpY1JlY2VpdmVy
+SWQiOiAiUkVDRUlWRVJJRCIsCgkJImljRGF0ZSI6ICIxMDAzMjUiLAoJCSJpdFRpbWUiOiAiMTEx
+MyIsCgkJInJ0U2VwYXJhdG9yIjogIlUiLAoJCSJ2ZXJzaW9uTnVtYmVyIjogIjAwNTAxIiwKCQki
+Y29udHJvbE51bWJlciI6ICIwMDAwMTE0MzYiLAoJCSJyZXF1ZXN0ZWRBY2siOiAiMCIsCgkJInVz
+YWdlSW5kaWNhdG9yIjogIlQiLAoJCSJlbGVtZW50U2VwYXJhdG9yIjogIjoiCgl9LAoJImFwcGxp
+Y2F0aW9uSW5mb194MTJIZWFkZXIiOiBbewoJCSJpZENvZGUiOiAiRkEiLAoJCSJzZW5kZXJDb2Rl
+IjogIlJFQ0VJVkVSSUQiLAoJCSJyZWNlaXZlckNvZGUiOiAiU0VOREVSSUQiLAoJCSJkYXRlIjog
+IjIwMTAwMzI1IiwKCQkidGltZSI6ICIxMTEzIiwKCQkiY29udHJvbE51bWJlciI6ICIyNDcxMiIs
+CgkJImFnZW5jeUNvZGUiOiAiWCIsCgkJInZlcnNpb25Db2RlIjogIjAwNDAzMCIsCgoJCSJ0cmFu
+c2FjdGlvbkluZm9fbWVzc2FnZUhlYWRlciI6IFt7CgkJCSJpZGVudGlmaWVyQ29kZSI6ICIyNzAi
+LAoJCQkiY29udHJvbE51bWJlciI6ICIxMTM2IiwKCQkJImNvbnZlbnRpb25SZWZlcmVuY2UiOiAi
+MDA1MDEwWDI3OSIsCgoJCQkibWVzc2FnZUJlZ2lubmluZ0luZm9fbWVzc2FnZUhlYWRlciI6IHsK
+CQkJCSJzdHJ1Y3R1cmVDb2RlIjogIjAwMjIiLAoJCQkJInB1cnBvc2VDb2RlIjogIjEzIiwKCQkJ
+CSJyZWZlcmVuY2VJZCI6ICIxOTk4MDAxMTQwMDAwMDEiLAoJCQkJImRhdGUiOiAiMTk5ODAxMDEi
+LAoJCQkJInRpbWUiOiAiMTQwMCIsCgkJCQkidHlwZUNvZGUiOiAiIgoJCQl9LAoJCQkic291cmNl
+TGV2ZWxJbmZvXzIwMDBBIjogW3sKCQkJCSJpZE51bWJlciI6ICIxMSIsCgkJCQkibGV2ZWxDb2Rl
+IjogIjIwIiwKCQkJCSJjaGlsZENvZGUiOiAiMSIsCgoJCQkJInNvdXJjZU5hbWVfMjEwMEEiOiB7
+CgkJCQkJImVJZENvZGUiOiAiUFIiLAoJCQkJCSJlVHlwZVF1YWxpZmllciI6ICIyIiwKCQkJCQki
+b3JnTmFtZSI6ICJJTkRJQU5BIEhFQUxUSCBDT1ZFUkFHRSBQUk9HUkFNIiwKCQkJCQkibmFtZV9m
+aXJzdCI6ICIiLAoJCQkJCSJuYW1lX21pZGRsZSI6ICIiLAoJCQkJCSJuYW1lX3N1ZmZpeCI6ICIi
+LAoJCQkJCSJpZFF1YWxpZmllciI6ICI0NiIsCgkJCQkJImlkQ29kZSI6ICJJSENQIgoJCQkJfQoJ
+CQl9XSwKCQkJInJlY2VpdmVyTGV2ZWxJbmZvXzIwMDBCIjogW3sKCQkJCSJpZE51bWJlciI6ICIy
+IiwKCQkJCSJwYXJlbnRJZE51bWJlciI6ICIxIiwKCQkJCSJsZXZlbENvZGUiOiAiMjEiLAoJCQkJ
+ImNoaWxkQ29kZSI6ICIxIiwKCgkJCQkicmVjZWl2ZXJOYW1lXzIxMDBCIjogewoJCQkJCSJlSWRD
+b2RlIjogIjFQIiwKCQkJCQkiZVR5cGVRdWFsaWZpZXIiOiAiMiIsCgkJCQkJIm9yZ05hbWUiOiAi
+Sk9ORVMgSE9TUElUQUwiLAoJCQkJCSJuYW1lX2ZpcnN0IjogIiIsCgkJCQkJIm5hbWVfbWlkZGxl
+IjogIiIsCgkJCQkJIm5hbWVfc3VmZml4IjogIiIsCgkJCQkJImlkUXVhbGlmaWVyIjogIlhYIiwK
+CQkJCQkiaWRDb2RlIjogIjExMTIyMzMzMzQiCgoJCQkJfSwKCQkJCSJhZGRpdGlvbmFsSWRfMjEw
+MEIiOiBbewoJCQkJCSJpZFF1YWxpZmllciI6ICJFTyIsCgkJCQkJImlkQ29kZSI6ICI0Nzc1NjM5
+MjgiLAoJCQkJCSJkZXNjcmlwdGlvbiI6ICIiCgkJCQl9XSwKCQkJCSJyZWNlaXZlckFkZHJlc3Nf
+MjEwMEIiOiB7CgkJCQkJImFkZHJlc3NMaW5lX2EiOiAiMjAxIFBBUksgQVZFTlVFIiwKCQkJCQki
+YWRkcmVzc0xpbmVfYiI6ICJTVUlURSAzMDAiLAoJCQkJCSJjaXR5IjogIkNFTlRFUlZJTExFIiwK
+CQkJCQkic3RhdGVDb2RlIjogIklOIiwKCQkJCQkicG9zdGFsQ29kZSI6ICI0NjExMSIsCgkJCQkJ
+ImNvdW50cnlDb2RlIjogIiIsCgkJCQkJInN1YmRpdmlzaW9uQ29kZSI6ICIiCgkJCQl9LAoJCQkJ
+InJlY2VpdmVyUHJvdmlkZXJJbmZvXzIxMDBCIjogewoJCQkJCSJwcm92aWRlckNvZGUiOiAiUEUi
+LAoJCQkJCSJpZFF1YWxpZmllciI6ICJQWEMiLAoJCQkJCSJpZENvZGUiOiAiMjA3UTAwMDAwWCIK
+CQkJCX0KCQkJfV0sCgkJCSJzdWJzY3JpYmVySW5mb18yMDAwQyI6IFt7CgkJCQkic3Vic2NyaWJl
+ckxldmVsXzIwMDBDIjogewoJCQkJCSJpZE51bWJlciI6ICIzIiwKCQkJCQkicGFyZW50SWROdW1i
+ZXIiOiAiMiIsCgkJCQkJImxldmVsQ29kZSI6ICIyMiIsCgkJCQkJImNoaWxkQ29kZSI6ICIxIgoJ
+CQkJfSwKCQkJCSJ0cmFjZU51bWJlcl8yMDAwQyI6IFt7CgkJCQkJInR5cGVDb2RlIjogIjEiLAoJ
+CQkJCSJyZWZlcmVuY2VJZF9hIjogIjk4MTc1LTAxMjU0NyIsCgkJCQkJImNvbXBhbnlJZGVudGlm
+aWVyIjogIjk4NzcyODEyMzQiLAoJCQkJCSJyZWZlcmVuY2VJZF9iIjogIlJBRElPTE9HWSIKCQkJ
+CX1dLAoJCQkJInN1YnNjcmliZXJTcGVjaWZpY3NfMjEwMEMiOiB7CgkJCQkJInN1YnNjcmliZXJO
+YW1lXzIxMDBDIjogewoJCQkJCQkiZUlkQ29kZSI6ICJJTCIsCgkJCQkJCSJlVHlwZVF1YWxpZmll
+ciI6ICIxIiwKCQkJCQkJIm9yZ05hbWUiOiAiU01JVEgiLAoJCQkJCQkibmFtZV9maXJzdCI6ICJK
+T0hOIiwKCQkJCQkJIm5hbWVfbWlkZGxlIjogIkwiLAoJCQkJCQkibmFtZV9zdWZmaXgiOiAiIiwK
+CQkJCQkJImlkUXVhbGlmaWVyIjogIk1JIiwKCQkJCQkJImlkQ29kZSI6ICI5NzY1NDAyMzQ5OSIK
+CQkJCQl9LAoJCQkJCSJhZGRpdGlvbmFsSWRfMjEwMEMiOiBbewoJCQkJCQkiaWRRdWFsaWZpZXIi
+OiAiRjYiLAoJCQkJCQkiaWRDb2RlIjogIjY2MDQxNTc4Njk3OCIKCQkJCQl9XSwKCQkJCQkic3Vi
+c2NyaWJlckFkZHJlc3NfMjEwMEMiOiB7CgkJCQkJCSJhZGRyZXNzTGluZV9hIjogIjE1MTk3IEJS
+T0FEV0FZIEFWRU5VRSIsCgkJCQkJCSJhZGRyZXNzTGluZV9iIjogIkFQVCAyMTUiLAoJCQkJCQki
+Y2l0eSI6ICJDRU5URVJWSUxMRSIsCgkJCQkJCSJzdGF0ZUNvZGUiOiAiSU4iLAoJCQkJCQkicG9z
+dGFsQ29kZSI6ICI0NjExMSIsCgkJCQkJCSJjb3VudHJ5Q29kZSI6ICIiLAoJCQkJCQkic3ViZGl2
+aXNpb25Db2RlIjogIiIKCQkJCQl9LAoJCQkJCSJwcm92aWRlckluZm9fMjEwMEMiOiB7CgkJCQkJ
+CSJwcm92aWRlckNvZGUiOiAiUkYiLAoJCQkJCQkiaWRRdWFsaWZpZXIiOiAiRUkiLAoJCQkJCQki
+aWRDb2RlIjogIjk5OTEyMzQ1NjciCgkJCQkJfSwKCQkJCQkiZGVtb2dyYXBoaWNJbmZvXzIxMDBD
+IjogewoJCQkJCQkiZGF0ZVRpbWVGb3JtYXQiOiAiRDgiLAoJCQkJCQkiZGF0ZVRpbWVQZXJpb2Qi
+OiAiMTk0MzA5MTciLAoJCQkJCQkiZ2VuZGVyQ29kZSI6ICJNIgoJCQkJCX0sCgkJCQkJImJpcnRo
+U2VxdWVuY2VOdW1iZXJfMjEwMEMiOiB7CgkJCQkJCSJyZXNwb25zZUNvZGUiOiAiWSIsCgkJCQkJ
+CSJyZWxhdGlvbnNoaXBDb2RlIjogIjE4IiwKCQkJCQkJIm51bWJlciI6ICIzIgoJCQkJCX0sCgkJ
+CQkJImhlYWx0aENhcmVEaWFnbm9zaXNDb2RlXzIxMDBDIjogewoJCQkJCQkiaGVhbHRoQ29kZUlu
+Zm9fYSI6ICJBQksiLAoJCQkJCQkicXVhbGlmaWVyQ29kZV9hIjogIjg5MDEiLAoJCQkJCQkiaW5k
+dXN0cnlDb2RlX2EiOiAiIiwKCQkJCQkJImhlYWx0aENvZGVJbmZvX2IiOiAiQUJLIiwKCQkJCQkJ
+InF1YWxpZmllckNvZGVfYiI6ICI4NzIwMCIsCgkJCQkJCSJpbmR1c3RyeUNvZGVfYiI6ICIiLAoJ
+CQkJCQkiaGVhbHRoQ29kZUluZm9fYyI6ICJBQksiLAoJCQkJCQkicXVhbGlmaWVyQ29kZV9jIjog
+IjU1NTkiLAoJCQkJCQkiaW5kdXN0cnlDb2RlX2MiOiAiIiwKCQkJCQkJImhlYWx0aENvZGVJbmZv
+X2QiOiAiQUJGIiwKCQkJCQkJInF1YWxpZmllckNvZGVfZCI6ICI1NTU5IiwKCQkJCQkJImluZHVz
+dHJ5Q29kZV9kIjogIiIsCgkJCQkJCSJoZWFsdGhDb2RlSW5mb19lIjogIiIsCgkJCQkJCSJxdWFs
+aWZpZXJDb2RlX2UiOiAiIiwKCQkJCQkJImluZHVzdHJ5Q29kZV9lIjogIiIsCgkJCQkJCSJoZWFs
+dGhDb2RlSW5mb19mIjogIiIsCgkJCQkJCSJxdWFsaWZpZXJDb2RlX2YiOiAiIiwKCQkJCQkJImlu
+ZHVzdHJ5Q29kZV9mIjogIiIsCgkJCQkJCSJoZWFsdGhDb2RlSW5mb19nIjogIiIsCgkJCQkJCSJx
+dWFsaWZpZXJDb2RlX2ciOiAiIiwKCQkJCQkJImluZHVzdHJ5Q29kZV9nIjogIiIsCgkJCQkJCSJo
+ZWFsdGhDb2RlSW5mb19oIjogIiIsCgkJCQkJCSJxdWFsaWZpZXJDb2RlX2giOiAiIiwKCQkJCQkJ
+ImluZHVzdHJ5Q29kZV9oIjogIiIKCQkJCQl9LAoJCQkJCSJzdWJzY3JpYmVyRGF0ZV8yMTAwQyI6
+IFt7CgkJCQkJCSJkYXRlVGltZVF1YWxpZmllciI6ICIyOTEiLAoJCQkJCQkiZGF0ZVRpbWVGb3Jt
+YXQiOiAiRDgiLAoJCQkJCQkiZGF0ZVRpbWVQZXJpb2QiOiAiMjAwNTEwMTUiCgkJCQkJfV0sCgoJ
+CQkJCSJlbGlnaWJpbGl0eUluZm9fMjExMEMiOiBbewoJCQkJCQkiYmVuZWZpdElucXVpcnlfMjEx
+MEMiOiB7CgkJCQkJCQkidHlwZUNvZGUiOiAiMzAiLAoJCQkJCQkJInByb2NlZHVyZUlkIjogIkZB
+TSIsCgkJCQkJCQkic2VydmljZUlkUXVhbGlmaWVyIjogIiIsCgkJCQkJCQkic2VydmljZUlkIjog
+IiIsCgkJCQkJCQkicHJvY2VkdXJlTW9kaWZpZXJfYSI6ICIiLAoJCQkJCQkJInByb2NlZHVyZU1v
+ZGlmaWVyX2IiOiAiIiwKCQkJCQkJCSJwcm9jZWR1cmVNb2RpZmllcl9jIjogIiIsCgkJCQkJCQki
+cHJvY2VkdXJlTW9kaWZpZXJfZCI6ICIiLAoJCQkJCQkJImxldmVsQ29kZSI6ICIiLAoJCQkJCQkJ
+ImNvbXBvc2l0ZUNvZGVQb2ludGVyIjogIiIsCgkJCQkJCQkiZGlhZ25vc2lzQ29kZVBvaW50ZXJf
+YSI6ICIiLAoJCQkJCQkJImRpYWdub3Npc0NvZGVQb2ludGVyX2IiOiAiIiwKCQkJCQkJCSJkaWFn
+bm9zaXNDb2RlUG9pbnRlcl9jIjogIiIsCgkJCQkJCQkiZGlhZ25vc2lzQ29kZVBvaW50ZXJfZCI6
+ICIiCgkJCQkJCX0sCgkJCQkJCSJzcGVuZERvd25BbW91bnRfMjExMEMiOiB7CgkJCQkJCQkiYW1v
+dW50UXVhbGlmaWVyQ29kZSI6ICJSIiwKCQkJCQkJCSJhbW91bnQiOiAiMzcuNSIKCQkJCQkJfSwK
+CQkJCQkJInNwZW5kRG93blRvdGFsQW1vdW50XzIxMTBDIjogewoJCQkJCQkJImFtb3VudFF1YWxp
+ZmllckNvZGUiOiAiUEIiLAoJCQkJCQkJImFtb3VudCI6ICIzNy41IgoJCQkJCQl9LAoJCQkJCQki
+ZWxpZ2liaWxpdHlJbmZvcm1hdGlvbl8yMTEwQyI6IHsKCQkJCQkJCSJxdWFsaWZpZXJDb2RlIjog
+IlpaIiwKCQkJCQkJCSJpbmR1c3RyeUNvZGUiOiAiMjEiCgkJCQkJCX0sCgkJCQkJCSJhZGRpdGlv
+bmFsSW5mb3JtYXRpb25fMjExMEMiOiB7CgkJCQkJCQkiaWRRdWFsaWZpZXIiOiAiOUYiLAoJCQkJ
+CQkJImlkQ29kZSI6ICI2NjA0MTUiCgkJCQkJCX0sCgkJCQkJCSJzdWJzY3JpYmVyRWxpZ2liaWxp
+dHlEYXRlXzIxMTBDIjogewoJCQkJCQkJImRhdGVUaW1lUXVhbGlmaWVyIjogIjI5MSIsCgkJCQkJ
+CQkiZGF0ZVRpbWVGb3JtYXQiOiAiRDgiLAoJCQkJCQkJImRhdGVUaW1lUGVyaW9kIjogIjIwMDUx
+MDMxIgoJCQkJCQl9CgkJCQkJfV0KCQkJCX0KCQkJfV0sCgkJCSJkZXBlbmRlbnRJbmZvXzIwMDBE
+IjogW3sKCQkJCSJkZXBlbmRlbnRMZXZlbF8yMDAwRCI6IHsKCQkJCQkiaWROdW1iZXIiOiAiNCIs
+CgkJCQkJInBhcmVudElkTnVtYmVyIjogIjMiLAoJCQkJCSJsZXZlbENvZGUiOiAiMjMiLAoJCQkJ
+CSJjaGlsZENvZGUiOiAiMCIKCQkJCX0sCgkJCQkiZGVwZW5kZW50VHJhY2VOdW1iZXJfMjAwMEQi
+OiBbewoJCQkJCSJ0eXBlQ29kZSI6ICIxIiwKCQkJCQkicmVmZXJlbmNlSWRfYSI6ICI5ODE3NS0w
+MTI1NDciLAoJCQkJCSJjb21wYW55SWRlbnRpZmllciI6ICI5ODc3MjgxMjM0IiwKCQkJCQkicmVm
+ZXJlbmNlSWRfYiI6ICJSQURJT0xPR1kiCgkJCQl9XSwKCQkJCSJkZXBlbmRlbnRTcGVjaWZpY3Nf
+MjEwMEQiOiB7CgkJCQkJImRlcGVuZGVudE5hbWUiOiB7CgkJCQkJCSJlSWRDb2RlIjogIjAzIiwK
+CQkJCQkJImVUeXBlUXVhbGlmaWVyIjogIjEiLAoJCQkJCQkib3JnTmFtZSI6ICJTTUlUSCIsCgkJ
+CQkJCSJuYW1lX2ZpcnN0IjogIk1BUlkgTE9VICIsCgkJCQkJCSJuYW1lX21pZGRsZSI6ICJSIiwK
+CQkJCQkJIm5hbWVfc3VmZml4IjogIiIKCQkJCQl9LAoJCQkJCSJhZGRpdGlvbmFsSWRfMjEwMEQi
+OiBbewoJCQkJCQkiaWRRdWFsaWZpZXIiOiAiMUwiLAoJCQkJCQkiaWRDb2RlIjogIjY2MDQxNSIK
+CQkJCQl9XSwKCQkJCQkiZGVwZW5kZW50QWRkcmVzc18yMTAwRCI6IHsKCQkJCQkJImFkZHJlc3NM
+aW5lX2EiOiAiMTUxOTcgQlJPQURXQVkgQVZFTlVFIiwKCQkJCQkJImFkZHJlc3NMaW5lX2IiOiAi
+QVBUIDIxNSIsCgkJCQkJCSJjaXR5IjogIktBTlNBUyBDSVRZICIsCgkJCQkJCSJzdGF0ZUNvZGUi
+OiAiTU8iLAoJCQkJCQkicG9zdGFsQ29kZSI6ICI2NDEwOCIsCgkJCQkJCSJjb3VudHJ5Q29kZSI6
+ICIiLAoJCQkJCQkic3ViZGl2aXNpb25Db2RlIjogIiIKCQkJCQl9LAoJCQkJCSJwcm92aWRlcklu
+Zm9fMjEwMEQiOiB7CgkJCQkJCSJwcm92aWRlckNvZGUiOiAiUkYiLAoJCQkJCQkiaWRRdWFsaWZp
+ZXIiOiAiRUkiLAoJCQkJCQkiaWRDb2RlIjogIjk5OTEyMzQ1NjciCgkJCQkJfSwKCQkJCQkiZGVt
+b2dyYXBoaWNJbmZvXzIxMDBEIjogewoJCQkJCQkiZGF0ZVRpbWVGb3JtYXQiOiAiRDgiLAoJCQkJ
+CQkiZGF0ZVRpbWVQZXJpb2QiOiAiMTk0MzAxMjEiLAoJCQkJCQkiZ2VuZGVyQ29kZSI6ICJGIgoJ
+CQkJCX0sCgkJCQkJInJlbGF0aW9uc2hpcF8yMTAwRCI6IHsKCQkJCQkJInJlc3BvbnNlQ29kZSI6
+ICJOIiwKCQkJCQkJInJlbGF0aW9uc2hpcENvZGUiOiAiMDEiLAoJCQkJCQkibnVtYmVyIjogIiIK
+CQkJCQl9LAoJCQkJCSJoZWFsdGhDYXJlRGlhZ25vc2lzQ29kZV8yMTAwRCI6IHsKCQkJCQkJImhl
+YWx0aENvZGVJbmZvX2EiOiAiQUJLIiwKCQkJCQkJInF1YWxpZmllckNvZGVfYSI6ICI4OTAxIiwK
+CQkJCQkJImluZHVzdHJ5Q29kZV9hIjogIiIsCgkJCQkJCSJoZWFsdGhDb2RlSW5mb19iIjogIkFC
+SyIsCgkJCQkJCSJxdWFsaWZpZXJDb2RlX2IiOiAiODcyMDAiLAoJCQkJCQkiaW5kdXN0cnlDb2Rl
+X2IiOiAiIiwKCQkJCQkJImhlYWx0aENvZGVJbmZvX2MiOiAiQUJLIiwKCQkJCQkJInF1YWxpZmll
+ckNvZGVfYyI6ICI1NTU5IiwKCQkJCQkJImluZHVzdHJ5Q29kZV9jIjogIiIsCgkJCQkJCSJoZWFs
+dGhDb2RlSW5mb19kIjogIkFCRiIsCgkJCQkJCSJxdWFsaWZpZXJDb2RlX2QiOiAiNTU1OSIsCgkJ
+CQkJCSJpbmR1c3RyeUNvZGVfZCI6ICIiLAoJCQkJCQkiaGVhbHRoQ29kZUluZm9fZSI6ICIiLAoJ
+CQkJCQkicXVhbGlmaWVyQ29kZV9lIjogIiIsCgkJCQkJCSJpbmR1c3RyeUNvZGVfZSI6ICIiLAoJ
+CQkJCQkiaGVhbHRoQ29kZUluZm9fZiI6ICIiLAoJCQkJCQkicXVhbGlmaWVyQ29kZV9mIjogIiIs
+CgkJCQkJCSJpbmR1c3RyeUNvZGVfZiI6ICIiLAoJCQkJCQkiaGVhbHRoQ29kZUluZm9fZyI6ICIi
+LAoJCQkJCQkicXVhbGlmaWVyQ29kZV9nIjogIiIsCgkJCQkJCSJpbmR1c3RyeUNvZGVfZyI6ICIi
+LAoJCQkJCQkiaGVhbHRoQ29kZUluZm9faCI6ICIiLAoJCQkJCQkicXVhbGlmaWVyQ29kZV9oIjog
+IiIsCgkJCQkJCSJpbmR1c3RyeUNvZGVfaCI6ICIiCgkJCQkJfSwKCQkJCQkiZGVwZW5kZW50RGF0
+ZV8yMTAwRCI6IFt7CgkJCQkJCSJkYXRlVGltZVF1YWxpZmllciI6ICIyOTEiLAoJCQkJCQkiZGF0
+ZVRpbWVGb3JtYXQiOiAiRDgiLAoJCQkJCQkiZGF0ZVRpbWVQZXJpb2QiOiAiMjAwNTEwMTUiCgkJ
+CQkJfV0sCgoJCQkJCSJlbGlnaWJpbGl0eUluZm9fMjExMEQiOiBbewoJCQkJCQkiYmVuZWZpdElu
+cXVpcnlfMjExMEQiOiB7CgkJCQkJCQkidHlwZUNvZGUiOiAiOTgiLAoJCQkJCQkJInByb2NlZHVy
+ZUlkIjogIjM0IiwKCQkJCQkJCSJzZXJ2aWNlSWRRdWFsaWZpZXIiOiAiNDQiLAoJCQkJCQkJInNl
+cnZpY2VJZCI6ICI4MSIsCgkJCQkJCQkicHJvY2VkdXJlTW9kaWZpZXJfYSI6ICJBMCIsCgkJCQkJ
+CQkicHJvY2VkdXJlTW9kaWZpZXJfYiI6ICJBMyIsCgkJCQkJCQkicHJvY2VkdXJlTW9kaWZpZXJf
+YyI6ICIiLAoJCQkJCQkJInByb2NlZHVyZU1vZGlmaWVyX2QiOiAiIiwKCQkJCQkJCSJjb21wb3Np
+dGVDb2RlUG9pbnRlciI6ICIiLAoJCQkJCQkJImRpYWdub3Npc0NvZGVQb2ludGVyX2EiOiAiIiwK
+CQkJCQkJCSJkaWFnbm9zaXNDb2RlUG9pbnRlcl9iIjogIiIsCgkJCQkJCQkiZGlhZ25vc2lzQ29k
+ZVBvaW50ZXJfYyI6ICIiLAoJCQkJCQkJImRpYWdub3Npc0NvZGVQb2ludGVyX2QiOiAiIgoJCQkJ
+CQl9LAoJCQkJCQkiYWRkaXRpb25hbElucXVpcnlfMjExMEQiOiB7CgkJCQkJCQkicXVhbGlmaWVy
+Q29kZSI6ICJ6eiIsCgkJCQkJCQkiaW5kdXN0cnlDb2RlIjogIjIxIgoJCQkJCQl9LAoJCQkJCQki
+YWRkaXRpb25hbEluZm9ybWF0aW9uXzIxMTBEIjogewoJCQkJCQkJImlkUXVhbGlmaWVyIjogIjlG
+IiwKCQkJCQkJCSJpZENvZGUiOiAiNjYwNDE1IgoJCQkJCQl9LAoJCQkJCQkiYmVuZWZpdERhdGVf
+MjExMEQiOiB7CgkJCQkJCQkiZGF0ZVRpbWVRdWFsaWZpZXIiOiAiMjkxIiwKCQkJCQkJCSJkYXRl
+VGltZUZvcm1hdCI6ICJEOCIsCgkJCQkJCQkiZGF0ZVRpbWVQZXJpb2QiOiAiMjAwNTEwMzEiCgkJ
+CQkJCX0KCgkJCQkJfV0KCQkJCX0KCQkJfV0KCQl9XQoJfV0sCgkiZW5kVHJhbnNhY3Rpb25fbWVz
+c2FnZVRyYWlsZXIiOiB7CgkJInNlZ21lbnRDb3VudCI6ICI0MSIsCgkJImNvbnRyb2xOdW1iZXIi
+OiAiMTEzNiIKCX0sCgkiZW5kRnVuY3Rpb25hbEdycCI6IHsKCQkiaGVhZGVyIjogIjEiLAoJCSJj
+b250cm9sTnVtYmVyIjogIjI0NzEyIgoJfSwKCSJlbmRJbnRlcmNoYW5nZUNvbnRyb2wiOiB7CgkJ
+ImljQ29udHJvbCI6ICIxIiwKCQkiY29udHJvbE51bWJlciI6ICIwMDAwMTE0MzYiCgl9Cgp9XQ==
+</inboundTemplate>
+      <outboundTemplate encoding="base64"></outboundTemplate>
+      <inboundDataType>JSON</inboundDataType>
+      <outboundDataType>XML</outboundDataType>
+      <inboundProperties class="com.mirth.connect.plugins.datatypes.xml.XMLDataTypeProperties" version="3.4.1">
+        <serializationProperties class="com.mirth.connect.plugins.datatypes.xml.XMLSerializationProperties" version="3.4.1">
+          <stripNamespaces>false</stripNamespaces>
+        </serializationProperties>
+        <batchProperties class="com.mirth.connect.plugins.datatypes.xml.XMLBatchProperties" version="3.4.1">
+          <splitType>Element_Name</splitType>
+          <elementName></elementName>
+          <level>1</level>
+          <query></query>
+          <batchScript></batchScript>
+        </batchProperties>
+      </inboundProperties>
+      <outboundProperties class="com.mirth.connect.plugins.datatypes.xml.XMLDataTypeProperties" version="3.4.1">
+        <serializationProperties class="com.mirth.connect.plugins.datatypes.xml.XMLSerializationProperties" version="3.4.1">
+          <stripNamespaces>false</stripNamespaces>
+        </serializationProperties>
+        <batchProperties class="com.mirth.connect.plugins.datatypes.xml.XMLBatchProperties" version="3.4.1">
+          <splitType>Element_Name</splitType>
+          <elementName></elementName>
+          <level>1</level>
+          <query></query>
+          <batchScript></batchScript>
+        </batchProperties>
+      </outboundProperties>
+    </transformer>
+    <filter version="3.4.1">
+      <rules/>
+    </filter>
+    <transportName>HTTP Listener</transportName>
+    <mode>SOURCE</mode>
+    <enabled>true</enabled>
+    <waitForPrevious>true</waitForPrevious>
+  </sourceConnector>
+  <destinationConnectors>
+    <connector version="3.4.1">
+      <metaDataId>1</metaDataId>
+      <name>Destination 1</name>
+      <properties class="com.mirth.connect.connectors.js.JavaScriptDispatcherProperties" version="3.4.1">
+        <pluginProperties/>
+        <destinationConnectorProperties version="3.4.1">
+          <queueEnabled>false</queueEnabled>
+          <sendFirst>false</sendFirst>
+          <retryIntervalMillis>10000</retryIntervalMillis>
+          <regenerateTemplate>false</regenerateTemplate>
+          <retryCount>0</retryCount>
+          <rotate>false</rotate>
+          <includeFilterTransformer>false</includeFilterTransformer>
+          <threadCount>1</threadCount>
+          <threadAssignmentVariable></threadAssignmentVariable>
+          <validateResponse>false</validateResponse>
+          <resourceIds class="linked-hash-map">
+            <entry>
+              <string>Default Resource</string>
+              <string>[Default Resource]</string>
+            </entry>
+          </resourceIds>
+          <queueBufferSize>1000</queueBufferSize>
+        </destinationConnectorProperties>
+        <script>return $(&apos;ediOutput&apos;)</script>
+      </properties>
+      <transformer version="3.4.1">
+        <steps/>
+        <inboundTemplate encoding="base64"></inboundTemplate>
+        <inboundDataType>XML</inboundDataType>
+        <outboundDataType>RAW</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.xml.XMLDataTypeProperties" version="3.4.1">
+          <serializationProperties class="com.mirth.connect.plugins.datatypes.xml.XMLSerializationProperties" version="3.4.1">
+            <stripNamespaces>true</stripNamespaces>
+          </serializationProperties>
+          <batchProperties class="com.mirth.connect.plugins.datatypes.xml.XMLBatchProperties" version="3.4.1">
+            <splitType>Element_Name</splitType>
+            <elementName></elementName>
+            <level>1</level>
+            <query></query>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.4.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.4.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </transformer>
+      <responseTransformer version="3.4.1">
+        <steps/>
+        <inboundTemplate encoding="base64"></inboundTemplate>
+        <outboundTemplate encoding="base64"></outboundTemplate>
+        <inboundDataType>RAW</inboundDataType>
+        <outboundDataType>RAW</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.4.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.4.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.4.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.4.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </responseTransformer>
+      <filter version="3.4.1">
+        <rules/>
+      </filter>
+      <transportName>JavaScript Writer</transportName>
+      <mode>DESTINATION</mode>
+      <enabled>true</enabled>
+      <waitForPrevious>true</waitForPrevious>
+    </connector>
+    <connector version="3.4.1">
+      <metaDataId>3</metaDataId>
+      <name>Destination 2</name>
+      <properties class="com.mirth.connect.connectors.file.FileDispatcherProperties" version="3.4.1">
+        <pluginProperties/>
+        <destinationConnectorProperties version="3.4.1">
+          <queueEnabled>false</queueEnabled>
+          <sendFirst>false</sendFirst>
+          <retryIntervalMillis>10000</retryIntervalMillis>
+          <regenerateTemplate>false</regenerateTemplate>
+          <retryCount>0</retryCount>
+          <rotate>false</rotate>
+          <includeFilterTransformer>false</includeFilterTransformer>
+          <threadCount>1</threadCount>
+          <threadAssignmentVariable></threadAssignmentVariable>
+          <validateResponse>false</validateResponse>
+          <resourceIds class="linked-hash-map">
+            <entry>
+              <string>Default Resource</string>
+              <string>[Default Resource]</string>
+            </entry>
+          </resourceIds>
+          <queueBufferSize>1000</queueBufferSize>
+        </destinationConnectorProperties>
+        <scheme>FILE</scheme>
+        <host>F:/Medicaid Folrida/270 output</host>
+        <outputPattern>${COUNT}_${date.get(&apos;yyyy-M-d H.m.s&apos;)}.edi</outputPattern>
+        <anonymous>true</anonymous>
+        <username>anonymous</username>
+        <password>anonymous</password>
+        <timeout>10000</timeout>
+        <secure>true</secure>
+        <passive>true</passive>
+        <validateConnection>true</validateConnection>
+        <outputAppend>true</outputAppend>
+        <errorOnExists>false</errorOnExists>
+        <temporary>false</temporary>
+        <binary>false</binary>
+        <charsetEncoding>DEFAULT_ENCODING</charsetEncoding>
+        <template>${ediOutput}</template>
+      </properties>
+      <transformer version="3.4.1">
+        <steps/>
+        <inboundDataType>XML</inboundDataType>
+        <outboundDataType>XML</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.xml.XMLDataTypeProperties" version="3.4.1">
+          <serializationProperties class="com.mirth.connect.plugins.datatypes.xml.XMLSerializationProperties" version="3.4.1">
+            <stripNamespaces>true</stripNamespaces>
+          </serializationProperties>
+          <batchProperties class="com.mirth.connect.plugins.datatypes.xml.XMLBatchProperties" version="3.4.1">
+            <splitType>Element_Name</splitType>
+            <elementName></elementName>
+            <level>1</level>
+            <query></query>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.xml.XMLDataTypeProperties" version="3.4.1">
+          <serializationProperties class="com.mirth.connect.plugins.datatypes.xml.XMLSerializationProperties" version="3.4.1">
+            <stripNamespaces>true</stripNamespaces>
+          </serializationProperties>
+          <batchProperties class="com.mirth.connect.plugins.datatypes.xml.XMLBatchProperties" version="3.4.1">
+            <splitType>Element_Name</splitType>
+            <elementName></elementName>
+            <level>1</level>
+            <query></query>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </transformer>
+      <responseTransformer version="3.4.1">
+        <steps/>
+        <inboundDataType>XML</inboundDataType>
+        <outboundDataType>XML</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.xml.XMLDataTypeProperties" version="3.4.1">
+          <serializationProperties class="com.mirth.connect.plugins.datatypes.xml.XMLSerializationProperties" version="3.4.1">
+            <stripNamespaces>true</stripNamespaces>
+          </serializationProperties>
+          <batchProperties class="com.mirth.connect.plugins.datatypes.xml.XMLBatchProperties" version="3.4.1">
+            <splitType>Element_Name</splitType>
+            <elementName></elementName>
+            <level>1</level>
+            <query></query>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.xml.XMLDataTypeProperties" version="3.4.1">
+          <serializationProperties class="com.mirth.connect.plugins.datatypes.xml.XMLSerializationProperties" version="3.4.1">
+            <stripNamespaces>true</stripNamespaces>
+          </serializationProperties>
+          <batchProperties class="com.mirth.connect.plugins.datatypes.xml.XMLBatchProperties" version="3.4.1">
+            <splitType>Element_Name</splitType>
+            <elementName></elementName>
+            <level>1</level>
+            <query></query>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </responseTransformer>
+      <filter version="3.4.1">
+        <rules/>
+      </filter>
+      <transportName>File Writer</transportName>
+      <mode>DESTINATION</mode>
+      <enabled>true</enabled>
+      <waitForPrevious>true</waitForPrevious>
+    </connector>
+  </destinationConnectors>
+  <preprocessingScript>// Modify the message variable below to pre process data
+return message;</preprocessingScript>
+  <postprocessingScript>// This script executes once after a message has been processed
+// Responses returned from here will be stored as &quot;Postprocessor&quot; in the response map
+return;</postprocessingScript>
+  <deployScript>// This script executes once when the channel is deployed
+// You only have access to the globalMap and globalChannelMap here to persist data
+return;</deployScript>
+  <undeployScript>// This script executes once when the channel is undeployed
+// You only have access to the globalMap and globalChannelMap here to persist data
+return;</undeployScript>
+  <properties version="3.4.1">
+    <clearGlobalChannelMap>true</clearGlobalChannelMap>
+    <messageStorageMode>DEVELOPMENT</messageStorageMode>
+    <encryptData>false</encryptData>
+    <removeContentOnCompletion>false</removeContentOnCompletion>
+    <removeOnlyFilteredOnCompletion>false</removeOnlyFilteredOnCompletion>
+    <removeAttachmentsOnCompletion>false</removeAttachmentsOnCompletion>
+    <initialState>STARTED</initialState>
+    <storeAttachments>false</storeAttachments>
+    <tags class="linked-hash-set"/>
+    <metaDataColumns>
+      <metaDataColumn>
+        <name>SOURCE</name>
+        <type>STRING</type>
+        <mappingName>mirth_source</mappingName>
+      </metaDataColumn>
+      <metaDataColumn>
+        <name>TYPE</name>
+        <type>STRING</type>
+        <mappingName>mirth_type</mappingName>
+      </metaDataColumn>
+    </metaDataColumns>
+    <attachmentProperties version="3.4.1">
+      <type>None</type>
+      <properties/>
+    </attachmentProperties>
+    <archiveEnabled>true</archiveEnabled>
+    <resourceIds class="linked-hash-map">
+      <entry>
+        <string>Default Resource</string>
+        <string>[Default Resource]</string>
+      </entry>
+    </resourceIds>
+  </properties>
+  <codeTemplateLibraries>
+    <codeTemplateLibrary version="3.4.1">
+      <id>e0f28459-7fd4-41b2-b963-ce4ee26b94b3</id>
+      <name>Library 1</name>
+      <revision>1</revision>
+      <lastModified>
+        <time>1444465816838</time>
+        <timezone>Asia/Calcutta</timezone>
+      </lastModified>
+      <description>This library was added upon migration to version 3.3.0. It includes all pre-existing
+code templates, and is set to be included on all pre-existing and new channels.
+
+You should create your own new libraries and assign code templates to them as you
+see fit. You should also link libraries to specific channels, so that you&apos;re not
+necessarily including all code templates on all channels all the time.</description>
+      <includeNewChannels>true</includeNewChannels>
+      <enabledChannelIds/>
+      <disabledChannelIds/>
+      <codeTemplates/>
+    </codeTemplateLibrary>
+  </codeTemplateLibraries>
+</channel>

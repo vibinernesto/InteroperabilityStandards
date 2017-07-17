@@ -1,0 +1,422 @@
+<channel version="3.4.1">
+  <id>c9385fa6-4d80-47fe-bbf4-f540cedcd030</id>
+  <nextMetaDataId>2</nextMetaDataId>
+  <name>HL7V2 To JSON</name>
+  <description></description>
+  <enabled>true</enabled>
+  <lastModified>
+    <time>1471707065040</time>
+    <timezone>Asia/Calcutta</timezone>
+  </lastModified>
+  <revision>20</revision>
+  <sourceConnector version="3.4.1">
+    <metaDataId>0</metaDataId>
+    <name>sourceConnector</name>
+    <properties class="com.mirth.connect.connectors.vm.VmReceiverProperties" version="3.4.1">
+      <pluginProperties/>
+      <sourceConnectorProperties version="3.4.1">
+        <responseVariable>None</responseVariable>
+        <respondAfterProcessing>true</respondAfterProcessing>
+        <processBatch>false</processBatch>
+        <firstResponse>false</firstResponse>
+        <processingThreads>1</processingThreads>
+        <resourceIds class="linked-hash-map">
+          <entry>
+            <string>Default Resource</string>
+            <string>[Default Resource]</string>
+          </entry>
+        </resourceIds>
+        <queueBufferSize>1000</queueBufferSize>
+      </sourceConnectorProperties>
+    </properties>
+    <transformer version="3.4.1">
+      <steps>
+        <step>
+          <sequenceNumber>0</sequenceNumber>
+          <name>HL7V2 to JSON</name>
+          <script>var hl7V2Array = [];
+var hl7V2Obj = {};
+
+hl7V2Obj.messageHeader ={};
+hl7V2Obj.messageHeader.fieldSeparator = msg[&apos;MSH&apos;][&apos;MSH.1&apos;]
+hl7V2Obj.messageHeader.encodingCharacter=msg[&apos;MSH&apos;][&apos;MSH.2&apos;]
+hl7V2Obj.messageHeader.sendingApplication=msg[&apos;MSH&apos;][&apos;MSH.3&apos;][&apos;MSH.3.1&apos;]
+hl7V2Obj.messageHeader.sendingFacility=msg[&apos;MSH&apos;][&apos;MSH.4&apos;][&apos;MSH.4.1&apos;]
+hl7V2Obj.messageHeader.receivingApplication=msg[&apos;MSH&apos;][&apos;MSH.5&apos;][&apos;MSH.5.1&apos;]
+hl7V2Obj.messageHeader.receivingFacility=msg[&apos;MSH&apos;][&apos;MSH.6&apos;][&apos;MSH.6.1&apos;]
+hl7V2Obj.messageHeader.dateTimeMessage=msg[&apos;MSH&apos;][&apos;MSH.7&apos;][&apos;MSH.7.1&apos;]
+hl7V2Obj.messageHeader.security=msg[&apos;MSH&apos;][&apos;MSH.8&apos;][&apos;MSH.8.1&apos;]
+hl7V2Obj.messageHeader.messageType=msg[&apos;MSH&apos;][&apos;MSH.9&apos;][&apos;MSH.9.1&apos;]
+hl7V2Obj.messageHeader.eventType=msg[&apos;MSH&apos;][&apos;MSH.9&apos;][&apos;MSH.9.2&apos;]
+hl7V2Obj.messageHeader.controlID=msg[&apos;MSH&apos;][&apos;MSH.10&apos;][&apos;MSH.10.1&apos;]
+hl7V2Obj.messageHeader.processingID=msg[&apos;MSH&apos;][&apos;MSH.11&apos;][&apos;MSH.11.1&apos;]
+hl7V2Obj.messageHeader.versionID=msg[&apos;MSH&apos;][&apos;MSH.12&apos;][&apos;MSH.12.1&apos;]
+hl7V2Obj.messageHeader.sequenceNumber=msg[&apos;MSH&apos;][&apos;MSH.13&apos;][&apos;MSH.13.1&apos;]
+
+hl7V2Obj.patientIdentification ={};
+hl7V2Obj.patientIdentification.setId=msg[&apos;PID&apos;][&apos;PID.1&apos;][&apos;PID.1.1&apos;]
+hl7V2Obj.patientIdentification.patientIdExternal=msg[&apos;PID&apos;][&apos;PID.2&apos;][&apos;PID.2.1&apos;]
+hl7V2Obj.patientIdentification.patientIdInternal=msg[&apos;PID&apos;][&apos;PID.3&apos;][&apos;PID.3.1&apos;]
+hl7V2Obj.patientIdentification.alternateId=msg[&apos;PID&apos;][&apos;PID.4&apos;][&apos;PID.4.1&apos;]
+hl7V2Obj.patientIdentification.patientName={};
+hl7V2Obj.patientIdentification.patientName.familyName=msg[&apos;PID&apos;][&apos;PID.5&apos;][&apos;PID.5.1&apos;]
+hl7V2Obj.patientIdentification.patientName.givenName=msg[&apos;PID&apos;][&apos;PID.5&apos;][&apos;PID.5.2&apos;]
+hl7V2Obj.patientIdentification.motherName=msg[&apos;PID&apos;][&apos;PID.6&apos;][&apos;PID.6.1&apos;]
+hl7V2Obj.patientIdentification.dateTimeBirth=msg[&apos;PID&apos;][&apos;PID.7&apos;][&apos;PID.7.1&apos;]
+hl7V2Obj.patientIdentification.sex=msg[&apos;PID&apos;][&apos;PID.8&apos;][&apos;PID.8.1&apos;]
+hl7V2Obj.patientIdentification.patientAlias=msg[&apos;PID&apos;][&apos;PID.9&apos;][&apos;PID.9.1&apos;]
+hl7V2Obj.patientIdentification.race=msg[&apos;PID&apos;][&apos;PID.10&apos;][&apos;PID.10.1&apos;]
+hl7V2Obj.patientIdentification.patientAddress=msg[&apos;PID&apos;][&apos;PID.11&apos;][&apos;PID.11.1&apos;]
+hl7V2Obj.patientIdentification.countryCode=msg[&apos;PID&apos;][&apos;PID.12&apos;][&apos;PID.12.1&apos;]
+hl7V2Obj.patientIdentification.phoneHome=msg[&apos;PID&apos;][&apos;PID.13&apos;][&apos;PID.13.1&apos;]
+hl7V2Obj.patientIdentification.phoneBusiness=msg[&apos;PID&apos;][&apos;PID.14&apos;][&apos;PID.14.1&apos;]
+hl7V2Obj.patientIdentification.primaryLanguage=msg[&apos;PID&apos;][&apos;PID.15&apos;][&apos;PID.15.1&apos;]
+hl7V2Obj.patientIdentification.maritalStatus=msg[&apos;PID&apos;][&apos;PID.16&apos;][&apos;PID.16.1&apos;]
+hl7V2Obj.patientIdentification.religion=msg[&apos;PID&apos;][&apos;PID.17&apos;][&apos;PID.17.1&apos;]
+hl7V2Obj.patientIdentification.accountNumber=msg[&apos;PID&apos;][&apos;PID.18&apos;][&apos;PID.18.1&apos;]
+hl7V2Obj.patientIdentification.ssnNumber=msg[&apos;PID&apos;][&apos;PID.19&apos;][&apos;PID.19.1&apos;]
+hl7V2Obj.patientIdentification.driverLicense=msg[&apos;PID&apos;][&apos;PID.20&apos;][&apos;PID.20.1&apos;]
+
+hl7V2Obj.patientDemographics ={};
+hl7V2Obj.patientDemographics.livingDependency=msg[&apos;PD1&apos;][&apos;PD1.1&apos;][&apos;PD1.1.1&apos;]
+hl7V2Obj.patientDemographics.livingArrangement=msg[&apos;PD1&apos;][&apos;PD1.2&apos;][&apos;PD1.2.1&apos;]
+hl7V2Obj.patientDemographics.primaryFacility=msg[&apos;PD1&apos;][&apos;PD1.3&apos;][&apos;PD1.3.1&apos;]
+hl7V2Obj.patientDemographics.careProviders={};
+hl7V2Obj.patientDemographics.careProviders.id=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.1&apos;]
+hl7V2Obj.patientDemographics.careProviders.familyName=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.2&apos;]
+hl7V2Obj.patientDemographics.careProviders.givenName=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.3&apos;]
+hl7V2Obj.patientDemographics.careProviders.middleName=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.4&apos;]
+hl7V2Obj.patientDemographics.careProviders.suffix=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.5&apos;]
+hl7V2Obj.patientDemographics.careProviders.prefix=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.6&apos;]
+hl7V2Obj.patientDemographics.careProviders.degree=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.7&apos;]
+hl7V2Obj.patientDemographics.careProviders.sourceTable=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.8&apos;]
+hl7V2Obj.patientDemographics.careProviders.AssiningAuthority=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.9&apos;]
+hl7V2Obj.patientDemographics.careProviders.studentIndicator = {};
+hl7V2Obj.patientDemographics.careProviders.studentIndicator.value=msg[&apos;PD1&apos;][&apos;PD1.5&apos;][&apos;PD1.5.1&apos;]
+
+hl7V2Obj.observation_results=[];
+var observation_results_child={};
+observation_results_child.observationDetails={};
+observation_results_child.observationDetails.id=msg[&apos;OBR&apos;][&apos;OBR.1&apos;][&apos;OBR.1.1&apos;].toString()
+observation_results_child.observationDetails.orderNumber={};
+observation_results_child.observationDetails.orderNumber.Id=msg[&apos;OBR&apos;][&apos;OBR.2&apos;][&apos;OBR.2.1&apos;]
+observation_results_child.observationDetails.orderNumber.namespaceId=msg[&apos;OBR&apos;][&apos;OBR.2&apos;][&apos;OBR.2.2&apos;]
+observation_results_child.observationDetails.fillerOrder=msg[&apos;OBR&apos;][&apos;OBR.3&apos;][&apos;OBR.3.1&apos;]
+observation_results_child.observationDetails.serviceId = msg[&apos;OBR&apos;][&apos;OBR.4&apos;][&apos;OBR.4.1&apos;]
+observation_results_child.observationDetails.text=msg[&apos;OBR&apos;][&apos;OBR.4&apos;][&apos;OBR.4.2&apos;]
+hl7V2Obj.observation_results.push(observation_results_child);
+
+var observation_results_child_2={};
+observation_results_child_2.resultsDetail={};
+observation_results_child_2.resultsDetail.setId=msg[&apos;OBX&apos;][&apos;OBX.1&apos;][&apos;OBX.1.1&apos;]
+observation_results_child_2.resultsDetail.valueType=msg[&apos;OBX&apos;][&apos;OBX.2&apos;][&apos;OBX.2.1&apos;]
+observation_results_child_2.resultsDetail.observationId=msg[&apos;OBX&apos;][&apos;OBX.3&apos;][&apos;OBX.3.1&apos;]
+observation_results_child_2.resultsDetail.subId=msg[&apos;OBX&apos;][&apos;OBX.4&apos;][&apos;OBX.4.1&apos;]
+observation_results_child_2.resultsDetail.observationValue=msg[&apos;OBX&apos;][&apos;OBX.5&apos;][&apos;OBX.5.1&apos;]
+observation_results_child_2.resultsDetail.Units=msg[&apos;OBX&apos;][&apos;OBX.6&apos;][&apos;OBX.6.1&apos;]
+hl7V2Obj.observation_results.push(observation_results_child_2);
+
+hl7V2Array.push(hl7V2Obj);
+
+var output = JSON.stringify(hl7V2Array);
+logger.info(output);
+channelMap.put(&apos;JSON&apos;,output);</script>
+          <type>JavaScript</type>
+          <data>
+            <entry>
+              <string>Script</string>
+              <string>var hl7V2Array = [];
+var hl7V2Obj = {};
+
+hl7V2Obj.messageHeader ={};
+hl7V2Obj.messageHeader.fieldSeparator = msg[&apos;MSH&apos;][&apos;MSH.1&apos;]
+hl7V2Obj.messageHeader.encodingCharacter=msg[&apos;MSH&apos;][&apos;MSH.2&apos;]
+hl7V2Obj.messageHeader.sendingApplication=msg[&apos;MSH&apos;][&apos;MSH.3&apos;][&apos;MSH.3.1&apos;]
+hl7V2Obj.messageHeader.sendingFacility=msg[&apos;MSH&apos;][&apos;MSH.4&apos;][&apos;MSH.4.1&apos;]
+hl7V2Obj.messageHeader.receivingApplication=msg[&apos;MSH&apos;][&apos;MSH.5&apos;][&apos;MSH.5.1&apos;]
+hl7V2Obj.messageHeader.receivingFacility=msg[&apos;MSH&apos;][&apos;MSH.6&apos;][&apos;MSH.6.1&apos;]
+hl7V2Obj.messageHeader.dateTimeMessage=msg[&apos;MSH&apos;][&apos;MSH.7&apos;][&apos;MSH.7.1&apos;]
+hl7V2Obj.messageHeader.security=msg[&apos;MSH&apos;][&apos;MSH.8&apos;][&apos;MSH.8.1&apos;]
+hl7V2Obj.messageHeader.messageType=msg[&apos;MSH&apos;][&apos;MSH.9&apos;][&apos;MSH.9.1&apos;]
+hl7V2Obj.messageHeader.eventType=msg[&apos;MSH&apos;][&apos;MSH.9&apos;][&apos;MSH.9.2&apos;]
+hl7V2Obj.messageHeader.controlID=msg[&apos;MSH&apos;][&apos;MSH.10&apos;][&apos;MSH.10.1&apos;]
+hl7V2Obj.messageHeader.processingID=msg[&apos;MSH&apos;][&apos;MSH.11&apos;][&apos;MSH.11.1&apos;]
+hl7V2Obj.messageHeader.versionID=msg[&apos;MSH&apos;][&apos;MSH.12&apos;][&apos;MSH.12.1&apos;]
+hl7V2Obj.messageHeader.sequenceNumber=msg[&apos;MSH&apos;][&apos;MSH.13&apos;][&apos;MSH.13.1&apos;]
+
+hl7V2Obj.patientIdentification ={};
+hl7V2Obj.patientIdentification.setId=msg[&apos;PID&apos;][&apos;PID.1&apos;][&apos;PID.1.1&apos;]
+hl7V2Obj.patientIdentification.patientIdExternal=msg[&apos;PID&apos;][&apos;PID.2&apos;][&apos;PID.2.1&apos;]
+hl7V2Obj.patientIdentification.patientIdInternal=msg[&apos;PID&apos;][&apos;PID.3&apos;][&apos;PID.3.1&apos;]
+hl7V2Obj.patientIdentification.alternateId=msg[&apos;PID&apos;][&apos;PID.4&apos;][&apos;PID.4.1&apos;]
+hl7V2Obj.patientIdentification.patientName={};
+hl7V2Obj.patientIdentification.patientName.familyName=msg[&apos;PID&apos;][&apos;PID.5&apos;][&apos;PID.5.1&apos;]
+hl7V2Obj.patientIdentification.patientName.givenName=msg[&apos;PID&apos;][&apos;PID.5&apos;][&apos;PID.5.2&apos;]
+hl7V2Obj.patientIdentification.motherName=msg[&apos;PID&apos;][&apos;PID.6&apos;][&apos;PID.6.1&apos;]
+hl7V2Obj.patientIdentification.dateTimeBirth=msg[&apos;PID&apos;][&apos;PID.7&apos;][&apos;PID.7.1&apos;]
+hl7V2Obj.patientIdentification.sex=msg[&apos;PID&apos;][&apos;PID.8&apos;][&apos;PID.8.1&apos;]
+hl7V2Obj.patientIdentification.patientAlias=msg[&apos;PID&apos;][&apos;PID.9&apos;][&apos;PID.9.1&apos;]
+hl7V2Obj.patientIdentification.race=msg[&apos;PID&apos;][&apos;PID.10&apos;][&apos;PID.10.1&apos;]
+hl7V2Obj.patientIdentification.patientAddress=msg[&apos;PID&apos;][&apos;PID.11&apos;][&apos;PID.11.1&apos;]
+hl7V2Obj.patientIdentification.countryCode=msg[&apos;PID&apos;][&apos;PID.12&apos;][&apos;PID.12.1&apos;]
+hl7V2Obj.patientIdentification.phoneHome=msg[&apos;PID&apos;][&apos;PID.13&apos;][&apos;PID.13.1&apos;]
+hl7V2Obj.patientIdentification.phoneBusiness=msg[&apos;PID&apos;][&apos;PID.14&apos;][&apos;PID.14.1&apos;]
+hl7V2Obj.patientIdentification.primaryLanguage=msg[&apos;PID&apos;][&apos;PID.15&apos;][&apos;PID.15.1&apos;]
+hl7V2Obj.patientIdentification.maritalStatus=msg[&apos;PID&apos;][&apos;PID.16&apos;][&apos;PID.16.1&apos;]
+hl7V2Obj.patientIdentification.religion=msg[&apos;PID&apos;][&apos;PID.17&apos;][&apos;PID.17.1&apos;]
+hl7V2Obj.patientIdentification.accountNumber=msg[&apos;PID&apos;][&apos;PID.18&apos;][&apos;PID.18.1&apos;]
+hl7V2Obj.patientIdentification.ssnNumber=msg[&apos;PID&apos;][&apos;PID.19&apos;][&apos;PID.19.1&apos;]
+hl7V2Obj.patientIdentification.driverLicense=msg[&apos;PID&apos;][&apos;PID.20&apos;][&apos;PID.20.1&apos;]
+
+hl7V2Obj.patientDemographics ={};
+hl7V2Obj.patientDemographics.livingDependency=msg[&apos;PD1&apos;][&apos;PD1.1&apos;][&apos;PD1.1.1&apos;]
+hl7V2Obj.patientDemographics.livingArrangement=msg[&apos;PD1&apos;][&apos;PD1.2&apos;][&apos;PD1.2.1&apos;]
+hl7V2Obj.patientDemographics.primaryFacility=msg[&apos;PD1&apos;][&apos;PD1.3&apos;][&apos;PD1.3.1&apos;]
+hl7V2Obj.patientDemographics.careProviders={};
+hl7V2Obj.patientDemographics.careProviders.id=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.1&apos;]
+hl7V2Obj.patientDemographics.careProviders.familyName=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.2&apos;]
+hl7V2Obj.patientDemographics.careProviders.givenName=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.3&apos;]
+hl7V2Obj.patientDemographics.careProviders.middleName=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.4&apos;]
+hl7V2Obj.patientDemographics.careProviders.suffix=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.5&apos;]
+hl7V2Obj.patientDemographics.careProviders.prefix=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.6&apos;]
+hl7V2Obj.patientDemographics.careProviders.degree=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.7&apos;]
+hl7V2Obj.patientDemographics.careProviders.sourceTable=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.8&apos;]
+hl7V2Obj.patientDemographics.careProviders.AssiningAuthority=msg[&apos;PD1&apos;][&apos;PD1.4&apos;][&apos;PD1.4.9&apos;]
+hl7V2Obj.patientDemographics.careProviders.studentIndicator = {};
+hl7V2Obj.patientDemographics.careProviders.studentIndicator.value=msg[&apos;PD1&apos;][&apos;PD1.5&apos;][&apos;PD1.5.1&apos;]
+
+hl7V2Obj.observation_results=[];
+var observation_results_child={};
+observation_results_child.observationDetails={};
+observation_results_child.observationDetails.id=msg[&apos;OBR&apos;][&apos;OBR.1&apos;][&apos;OBR.1.1&apos;].toString()
+observation_results_child.observationDetails.orderNumber={};
+observation_results_child.observationDetails.orderNumber.Id=msg[&apos;OBR&apos;][&apos;OBR.2&apos;][&apos;OBR.2.1&apos;]
+observation_results_child.observationDetails.orderNumber.namespaceId=msg[&apos;OBR&apos;][&apos;OBR.2&apos;][&apos;OBR.2.2&apos;]
+observation_results_child.observationDetails.fillerOrder=msg[&apos;OBR&apos;][&apos;OBR.3&apos;][&apos;OBR.3.1&apos;]
+observation_results_child.observationDetails.serviceId = msg[&apos;OBR&apos;][&apos;OBR.4&apos;][&apos;OBR.4.1&apos;]
+observation_results_child.observationDetails.text=msg[&apos;OBR&apos;][&apos;OBR.4&apos;][&apos;OBR.4.2&apos;]
+hl7V2Obj.observation_results.push(observation_results_child);
+
+var observation_results_child_2={};
+observation_results_child_2.resultsDetail={};
+observation_results_child_2.resultsDetail.setId=msg[&apos;OBX&apos;][&apos;OBX.1&apos;][&apos;OBX.1.1&apos;]
+observation_results_child_2.resultsDetail.valueType=msg[&apos;OBX&apos;][&apos;OBX.2&apos;][&apos;OBX.2.1&apos;]
+observation_results_child_2.resultsDetail.observationId=msg[&apos;OBX&apos;][&apos;OBX.3&apos;][&apos;OBX.3.1&apos;]
+observation_results_child_2.resultsDetail.subId=msg[&apos;OBX&apos;][&apos;OBX.4&apos;][&apos;OBX.4.1&apos;]
+observation_results_child_2.resultsDetail.observationValue=msg[&apos;OBX&apos;][&apos;OBX.5&apos;][&apos;OBX.5.1&apos;]
+observation_results_child_2.resultsDetail.Units=msg[&apos;OBX&apos;][&apos;OBX.6&apos;][&apos;OBX.6.1&apos;]
+hl7V2Obj.observation_results.push(observation_results_child_2);
+
+hl7V2Array.push(hl7V2Obj);
+
+var output = JSON.stringify(hl7V2Array);
+logger.info(output);
+channelMap.put(&apos;JSON&apos;,output);</string>
+            </entry>
+          </data>
+        </step>
+      </steps>
+      <inboundTemplate encoding="base64">TVNIfF5+XCZ8Q0VSTkVSfHxQcmlvcml0eUhlYWx0aHx8fHxPUlVeUjAxfFE0NzkwMDQzNzVUNDMx
+NDMwNjEyfFB8Mi4zfApQSUR8fHwwMDE2Nzc5ODB8fFNNSVRIXkNVUlRJU3x8MTk2ODAyMTl8TXx8
+fHx8fHx8fHw5Mjk2NDUxNTYzMTh8MTIzNDU2Nzg5fApQRDF8fHx8MTIzNDU2Nzg5MF5MQVNUXkZJ
+UlNUXk1eXl5eXk5QSXwKT0JSfDF8MzQxODU2NjQ5XkhOQU1fT1JERVJJRHwwMDAwMDIwMDYzMjYw
+MDIzNjJ8NjQ4MDg4XkJhc2ljIE1ldGFib2xpYyBQYW5lbHx8fDIwMDYxMTIyMTUxNjAwfHx8fHx8
+fHx8MTYyMF5Ib29rZXJeUm9iZXJ0Xkx8fHx8fHwyMDA2MTEyMjE1NDczM3x8fEZ8fHx8fHx8fHx8
+fDIwMDYxMTIyMTQwMDAwfApPQlh8MXxOTXxHTFVeR2x1Y29zZSBMdmx8NTl8bWcvZEx8NjUtOTle
+NjVeOTl8THx8fEZ8fHwyMDA2MTEyMjE1NDczM3w=</inboundTemplate>
+      <outboundTemplate encoding="base64"></outboundTemplate>
+      <inboundDataType>HL7V2</inboundDataType>
+      <outboundDataType>JSON</outboundDataType>
+      <inboundProperties class="com.mirth.connect.plugins.datatypes.hl7v2.HL7v2DataTypeProperties" version="3.4.1">
+        <serializationProperties class="com.mirth.connect.plugins.datatypes.hl7v2.HL7v2SerializationProperties" version="3.4.1">
+          <handleRepetitions>true</handleRepetitions>
+          <handleSubcomponents>true</handleSubcomponents>
+          <useStrictParser>false</useStrictParser>
+          <useStrictValidation>false</useStrictValidation>
+          <stripNamespaces>true</stripNamespaces>
+          <segmentDelimiter>\r</segmentDelimiter>
+          <convertLineBreaks>true</convertLineBreaks>
+        </serializationProperties>
+        <deserializationProperties class="com.mirth.connect.plugins.datatypes.hl7v2.HL7v2DeserializationProperties" version="3.4.1">
+          <useStrictParser>false</useStrictParser>
+          <useStrictValidation>false</useStrictValidation>
+          <segmentDelimiter>\r</segmentDelimiter>
+        </deserializationProperties>
+        <batchProperties class="com.mirth.connect.plugins.datatypes.hl7v2.HL7v2BatchProperties" version="3.4.1">
+          <splitType>MSH_Segment</splitType>
+          <batchScript></batchScript>
+        </batchProperties>
+        <responseGenerationProperties class="com.mirth.connect.plugins.datatypes.hl7v2.HL7v2ResponseGenerationProperties" version="3.4.1">
+          <segmentDelimiter>\r</segmentDelimiter>
+          <successfulACKCode>AA</successfulACKCode>
+          <successfulACKMessage></successfulACKMessage>
+          <errorACKCode>AE</errorACKCode>
+          <errorACKMessage>An Error Occurred Processing Message.</errorACKMessage>
+          <rejectedACKCode>AR</rejectedACKCode>
+          <rejectedACKMessage>Message Rejected.</rejectedACKMessage>
+          <msh15ACKAccept>false</msh15ACKAccept>
+          <dateFormat>yyyyMMddHHmmss.SSS</dateFormat>
+        </responseGenerationProperties>
+        <responseValidationProperties class="com.mirth.connect.plugins.datatypes.hl7v2.HL7v2ResponseValidationProperties" version="3.4.1">
+          <successfulACKCode>AA,CA</successfulACKCode>
+          <errorACKCode>AE,CE</errorACKCode>
+          <rejectedACKCode>AR,CR</rejectedACKCode>
+          <validateMessageControlId>true</validateMessageControlId>
+          <originalMessageControlId>Destination_Encoded</originalMessageControlId>
+          <originalIdMapVariable></originalIdMapVariable>
+        </responseValidationProperties>
+      </inboundProperties>
+      <outboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.4.1">
+        <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.4.1">
+          <splitType>JavaScript</splitType>
+          <batchScript></batchScript>
+        </batchProperties>
+      </outboundProperties>
+    </transformer>
+    <filter version="3.4.1">
+      <rules/>
+    </filter>
+    <transportName>Channel Reader</transportName>
+    <mode>SOURCE</mode>
+    <enabled>true</enabled>
+    <waitForPrevious>true</waitForPrevious>
+  </sourceConnector>
+  <destinationConnectors>
+    <connector version="3.4.1">
+      <metaDataId>1</metaDataId>
+      <name>Destination 1</name>
+      <properties class="com.mirth.connect.connectors.vm.VmDispatcherProperties" version="3.4.1">
+        <pluginProperties/>
+        <destinationConnectorProperties version="3.4.1">
+          <queueEnabled>false</queueEnabled>
+          <sendFirst>false</sendFirst>
+          <retryIntervalMillis>10000</retryIntervalMillis>
+          <regenerateTemplate>false</regenerateTemplate>
+          <retryCount>0</retryCount>
+          <rotate>false</rotate>
+          <includeFilterTransformer>false</includeFilterTransformer>
+          <threadCount>1</threadCount>
+          <threadAssignmentVariable></threadAssignmentVariable>
+          <validateResponse>false</validateResponse>
+          <resourceIds class="linked-hash-map">
+            <entry>
+              <string>Default Resource</string>
+              <string>[Default Resource]</string>
+            </entry>
+          </resourceIds>
+          <queueBufferSize>1000</queueBufferSize>
+        </destinationConnectorProperties>
+        <channelId>none</channelId>
+        <channelTemplate>${message.encodedData}</channelTemplate>
+        <mapVariables/>
+      </properties>
+      <transformer version="3.4.1">
+        <steps/>
+        <inboundDataType>JSON</inboundDataType>
+        <outboundDataType>JSON</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.4.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.4.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.4.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.4.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </transformer>
+      <responseTransformer version="3.4.1">
+        <steps/>
+        <inboundDataType>JSON</inboundDataType>
+        <outboundDataType>JSON</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.4.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.4.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.4.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.4.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </responseTransformer>
+      <filter version="3.4.1">
+        <rules/>
+      </filter>
+      <transportName>Channel Writer</transportName>
+      <mode>DESTINATION</mode>
+      <enabled>true</enabled>
+      <waitForPrevious>true</waitForPrevious>
+    </connector>
+  </destinationConnectors>
+  <preprocessingScript>// Modify the message variable below to pre process data
+return message;</preprocessingScript>
+  <postprocessingScript>// This script executes once after a message has been processed
+// Responses returned from here will be stored as &quot;Postprocessor&quot; in the response map
+return;</postprocessingScript>
+  <deployScript>// This script executes once when the channel is deployed
+// You only have access to the globalMap and globalChannelMap here to persist data
+return;</deployScript>
+  <undeployScript>// This script executes once when the channel is undeployed
+// You only have access to the globalMap and globalChannelMap here to persist data
+return;</undeployScript>
+  <properties version="3.4.1">
+    <clearGlobalChannelMap>true</clearGlobalChannelMap>
+    <messageStorageMode>DEVELOPMENT</messageStorageMode>
+    <encryptData>false</encryptData>
+    <removeContentOnCompletion>false</removeContentOnCompletion>
+    <removeOnlyFilteredOnCompletion>false</removeOnlyFilteredOnCompletion>
+    <removeAttachmentsOnCompletion>false</removeAttachmentsOnCompletion>
+    <initialState>STARTED</initialState>
+    <storeAttachments>false</storeAttachments>
+    <tags class="linked-hash-set"/>
+    <metaDataColumns>
+      <metaDataColumn>
+        <name>SOURCE</name>
+        <type>STRING</type>
+        <mappingName>mirth_source</mappingName>
+      </metaDataColumn>
+      <metaDataColumn>
+        <name>TYPE</name>
+        <type>STRING</type>
+        <mappingName>mirth_type</mappingName>
+      </metaDataColumn>
+    </metaDataColumns>
+    <attachmentProperties version="3.4.1">
+      <type>None</type>
+      <properties/>
+    </attachmentProperties>
+    <archiveEnabled>true</archiveEnabled>
+    <resourceIds class="linked-hash-map">
+      <entry>
+        <string>Default Resource</string>
+        <string>[Default Resource]</string>
+      </entry>
+    </resourceIds>
+  </properties>
+  <codeTemplateLibraries>
+    <codeTemplateLibrary version="3.4.1">
+      <id>e0f28459-7fd4-41b2-b963-ce4ee26b94b3</id>
+      <name>Library 1</name>
+      <revision>1</revision>
+      <lastModified>
+        <time>1444465816838</time>
+        <timezone>Asia/Calcutta</timezone>
+      </lastModified>
+      <description>This library was added upon migration to version 3.3.0. It includes all pre-existing
+code templates, and is set to be included on all pre-existing and new channels.
+
+You should create your own new libraries and assign code templates to them as you
+see fit. You should also link libraries to specific channels, so that you&apos;re not
+necessarily including all code templates on all channels all the time.</description>
+      <includeNewChannels>true</includeNewChannels>
+      <enabledChannelIds/>
+      <disabledChannelIds/>
+      <codeTemplates/>
+    </codeTemplateLibrary>
+  </codeTemplateLibraries>
+</channel>
